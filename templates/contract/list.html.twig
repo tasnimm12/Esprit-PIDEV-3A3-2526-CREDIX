@@ -1,0 +1,343 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Insurance Contracts - Credix{% endblock %}
+
+{% block content %}
+<div class="contracts-container" style="margin-top: 150px;">
+    <!-- Header Section -->
+    <div class="contracts-header">
+        <div class="container-xxl">
+            <div class="row align-items-center mb-4">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-2" style="color: #1a3a52;">
+                        <i class="fa fa-file-signature me-3" style="color: #e74c3c;"></i>Insurance Contracts
+                    </h1>
+                    <p class="text-muted mb-0">Manage and track all your insurance contracts</p>
+                </div>
+                <div class="col-lg-4 text-end">
+                    {% if app.user and app.user.role == 'admin' %}
+                        <a href="{{ path('app_contract_new') }}" class="btn btn-lg" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border: none; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);">
+                            <i class="fa fa-plus me-2"></i>New Contract
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon accepted-contracts">
+                            <i class="fa fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Accepted</h6>
+                            <p class="stat-number">{{ contracts|filter(c => c.getStatut() == 'ACCEPTED' or c.getStatut() == 'ACTIF')|length }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon expired-contracts">
+                            <i class="fa fa-times-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Expired</h6>
+                            <p class="stat-number">{{ contracts|filter(c => c.getStatut() == 'EXPIRE')|length }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon pending-contracts">
+                            <i class="fa fa-hourglass-half"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Pending</h6>
+                            <p class="stat-number">{{ contracts|filter(c => c.getStatut() == 'EN_ATTENTE')|length }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon total-contracts">
+                            <i class="fa fa-folder"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Total</h6>
+                            <p class="stat-number">{{ contracts|length }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-xxl py-5">
+        <div class="container">
+
+            <!-- Search and Filters Section -->
+            <div class="card mb-4 shadow-sm border-0">
+                <div class="card-body">
+                    <form method="GET" action="{{ path('app_contract_list') }}" class="row g-3">
+                        <!-- Search Bar -->
+                        <div class="col-md-4">
+                            <label class="form-label"><i class="fa fa-search me-2"></i>Search</label>
+                            <input type="text" name="search" class="form-control" placeholder="Contract #, User ID..." value="{{ app.request.query.get('search') }}">
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="col-md-3">
+                            <label class="form-label"><i class="fa fa-filter me-2"></i>Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All Statuses</option>
+                                <option value="ACCEPTED" {% if app.request.query.get('status') == 'ACCEPTED' %}selected{% endif %}>Accepted</option>
+                                <option value="ACTIF" {% if app.request.query.get('status') == 'ACTIF' %}selected{% endif %}>Active</option>
+                                <option value="EXPIRE" {% if app.request.query.get('status') == 'EXPIRE' %}selected{% endif %}>Expired</option>
+                                <option value="EN_ATTENTE" {% if app.request.query.get('status') == 'EN_ATTENTE' %}selected{% endif %}>Pending</option>
+                            </select>
+                        </div>
+
+                        <!-- Sort By -->
+                        <div class="col-md-3">
+                            <label class="form-label"><i class="fa fa-sort me-2"></i>Sort By</label>
+                            <select name="sort" class="form-select">
+                                <option value="">Default</option>
+                                <option value="date_asc" {% if app.request.query.get('sort') == 'date_asc' %}selected{% endif %}>Signing Date (Oldest)</option>
+                                <option value="date_desc" {% if app.request.query.get('sort') == 'date_desc' %}selected{% endif %}>Signing Date (Newest)</option>
+                                <option value="expiration_asc" {% if app.request.query.get('sort') == 'expiration_asc' %}selected{% endif %}>Expiration (Soon)</option>
+                                <option value="expiration_desc" {% if app.request.query.get('sort') == 'expiration_desc' %}selected{% endif %}>Expiration (Later)</option>
+                            </select>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="col-md-2 d-flex gap-2 align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fa fa-search me-1"></i>Filter
+                            </button>
+                            <a href="{{ path('app_contract_list') }}" class="btn btn-secondary">
+                                <i class="fa fa-redo"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if contracts|length > 0 %}
+                <div class="row g-4">
+                    {% for contract in contracts %}
+                        <div class="col-lg-6 col-xl-4">
+                            <div class="contract-card shadow-lg border-0">
+                                <div class="contract-card-header">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h5 class="contract-id">
+                                                <i class="fa fa-file-signature me-2"></i>Contract #{{ contract.numeroContrat ?? 'N/A' }}
+                                            </h5>
+                                        </div>
+                                        {% if contract.getStatut() == 'ACCEPTED' %}
+                                            <span class="badge badge-lg bg-success" style="font-size: 0.75rem;">Accepted</span>
+                                        {% elseif contract.getStatut() == 'ACTIF' %}
+                                            <span class="badge badge-lg bg-success" style="font-size: 0.75rem;">Active</span>
+                                        {% elseif contract.getStatut() == 'EXPIRE' %}
+                                            <span class="badge badge-lg bg-danger" style="font-size: 0.75rem;">Expired</span>
+                                        {% else %}
+                                            <span class="badge badge-lg bg-warning text-dark" style="font-size: 0.75rem;">Pending</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <div class="contract-info-block">
+                                        <div class="contract-info">
+                                            <label class="contract-label">
+                                                <i class="fa fa-user-circle"></i> User ID
+                                            </label>
+                                            <p class="contract-value">{{ contract.utilisateur.id ?? 'N/A' }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="contract-info">
+                                                <label class="contract-label">
+                                                    <i class="fa fa-calendar-check"></i> Signed
+                                                </label>
+                                                <p class="contract-value">
+                                                    {% if contract.dateSignature %}
+                                                        {{ contract.dateSignature|date('d/m/Y') }}
+                                                    {% else %}
+                                                        N/A
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="contract-info">
+                                                <label class="contract-label">
+                                                    <i class="fa fa-calendar-times"></i> Expires
+                                                </label>
+                                                <p class="contract-value">
+                                                    {% if contract.dateFinContrat %}
+                                                        {{ contract.dateFinContrat|date('d/m/Y') }}
+                                                    {% else %}
+                                                        N/A
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-white border-top">
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ path('app_contract_show', { id: contract.id }) }}" class="btn btn-primary btn-sm">
+                                            <i class="fa fa-eye me-1"></i>View Details
+                                        </a>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-2">
+                                        {% if app.user and app.user.role == 'admin' %}
+                                            <a href="{{ path('app_admin_contract_edit', { id: contract.id }) }}" class="btn btn-sm btn-outline-warning flex-grow-1" title="Edit">
+                                                <i class="fa fa-edit me-1"></i>Edit
+                                            </a>
+                                            <a href="{{ path('app_contract_delete', { id: contract.id }) }}" class="btn btn-sm btn-outline-danger flex-grow-1" onclick="return confirm('Are you sure?')" title="Delete">
+                                                <i class="fa fa-trash me-1"></i>Delete
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center py-5">
+                    <i class="fa fa-info-circle me-2"></i>
+                    <p class="mb-0">No contracts found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .contracts-container {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+
+    .contracts-header {
+        background: white;
+        padding: 40px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 24px;
+    }
+
+    .stat-icon.accepted-contracts {
+        background: #d4edda;
+        color: #28a745;
+    }
+
+    .stat-icon.expired-contracts {
+        background: #f8d7da;
+        color: #dc3545;
+    }
+
+    .stat-icon.pending-contracts {
+        background: #fff3cd;
+        color: #ff9800;
+    }
+
+    .stat-icon.total-contracts {
+        background: #d1ecf1;
+        color: #17a2b8;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1a3a52;
+        margin: 0;
+    }
+
+    .contract-card {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .contract-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .contract-card-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 20px;
+    }
+
+    .contract-id {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+        color: white;
+    }
+
+    .contract-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #7f8fa3;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+
+    .contract-value {
+        font-size: 16px;
+        font-weight: 500;
+        color: #1a3a52;
+        margin: 5px 0 0 0;
+    }
+
+    .badge-lg {
+        padding: 0.5rem 0.75rem;
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        border: none;
+        box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+        box-shadow: 0 6px 16px rgba(231, 76, 60, 0.4);
+    }
+</style>
+
+{% endblock %}

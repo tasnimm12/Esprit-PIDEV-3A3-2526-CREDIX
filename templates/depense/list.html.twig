@@ -1,0 +1,335 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Expenses - Credix{% endblock %}
+
+{% block content %}
+<div class="expenses-container" style="margin-top: 150px;">
+    <!-- Header Section -->
+    <div class="expenses-header">
+        <div class="container-xxl">
+            <div class="row align-items-center mb-4">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-2" style="color: #1a3a52;">
+                        <i class="fa fa-receipt me-3" style="color: #e74c3c;"></i>My Expenses
+                    </h1>
+                    <p class="text-muted mb-0">Track and manage your spending from purchases</p>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            {% if depenses|length > 0 %}
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon total-spent">
+                                <i class="fa fa-money-bill"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h6 class="text-muted small">Total Spent</h6>
+                                <p class="stat-number">${{ totalSpent|number_format(0, '.', ',') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon average-expense">
+                                <i class="fa fa-chart-bar"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h6 class="text-muted small">Average Transaction</h6>
+                                <p class="stat-number">${{ averageExpense|number_format(0, '.', ',') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon max-expense">
+                                <i class="fa fa-arrow-up"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h6 class="text-muted small">Highest Expense</h6>
+                                <p class="stat-number">${{ maxExpense|number_format(0, '.', ',') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon categories-count">
+                                <i class="fa fa-tags"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h6 class="text-muted small">Categories</h6>
+                                <p class="stat-number">{{ categoryStats|length }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container-xxl py-5">
+        <div class="container">
+
+    {# Flash Messages #}
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="fas fa-check-circle"></i> {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {# Category Breakdown #}
+    {% if categoryStats|length > 0 %}
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-bottom">
+                        <h6 class="mb-0">Spending by Category</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% for category, amount in categoryStats %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <small class="text-muted">{{ category }}</small>
+                                        <strong>${{ amount|number_format(2) }}</strong>
+                                    </div>
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ (amount / totalSpent * 100)|round(2) }}%">
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Filters #}
+    <div class="row mb-5">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body px-4 py-4">
+                    <form method="GET" class="row g-2 align-items-end">
+                        <div class="col-md-2">
+                            <label class="form-label small">Category</label>
+                            <select class="form-select form-select-sm" name="category">
+                                <option value="">All Categories</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat }}" {% if cat == category %}selected{% endif %}>{{ cat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label small">Min Amount</label>
+                            <input type="number" class="form-control form-control-sm" 
+                                   name="minAmount" placeholder="0.00" value="{{ minAmount }}">
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label small">Max Amount</label>
+                            <input type="number" class="form-control form-control-sm" 
+                                   name="maxAmount" placeholder="0.00" value="{{ maxAmount }}">
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label small">From Date</label>
+                            <input type="date" class="form-control form-control-sm" 
+                                   name="dateFrom" value="{{ dateFrom }}">
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label small">To Date</label>
+                            <input type="date" class="form-control form-control-sm" 
+                                   name="dateTo" value="{{ dateTo }}">
+                        </div>
+
+                        <div class="col-md-1">
+                            <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Active Filters #}
+    {% if category or minAmount or maxAmount or dateFrom or dateTo %}
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div class="d-flex flex-wrap gap-2">
+                    {% if category %}
+                        <span class="badge bg-info text-dark">Category: {{ category }}</span>
+                    {% endif %}
+                    {% if minAmount %}
+                        <span class="badge bg-info text-dark">Min: ${{ minAmount }}</span>
+                    {% endif %}
+                    {% if maxAmount %}
+                        <span class="badge bg-info text-dark">Max: ${{ maxAmount }}</span>
+                    {% endif %}
+                    {% if dateFrom %}
+                        <span class="badge bg-info text-dark">From: {{ dateFrom }}</span>
+                    {% endif %}
+                    {% if dateTo %}
+                        <span class="badge bg-info text-dark">To: {{ dateTo }}</span>
+                    {% endif %}
+                    <a href="{{ path('app_depense_list') }}" class="badge bg-secondary text-decoration-none">
+                        Clear Filters
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Expenses Table #}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    {% if depenses|length > 0 %}
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-muted small">
+                                        <a href="?category={{ category }}&sort=date_depense&order={% if sort == 'date_depense' and order == 'DESC' %}ASC{% else %}DESC{% endif %}" 
+                                           style="color: inherit; text-decoration: none;">
+                                            Date {% if sort == 'date_depense' %}<i class="fas fa-arrow-down"></i>{% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="text-muted small">Description</th>
+                                    <th class="text-muted small">Category</th>
+                                    <th class="text-muted small">
+                                        <a href="?category={{ category }}&sort=montant&order={% if sort == 'montant' and order == 'DESC' %}ASC{% else %}DESC{% endif %}" 
+                                           style="color: inherit; text-decoration: none;">
+                                            Amount {% if sort == 'montant' %}<i class="fas fa-arrow-down"></i>{% endif %}
+                                        </a>
+                                    </th>
+                                    <th class="text-muted small">Payment Method</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for depense in depenses %}
+                                    <tr>
+                                        <td>
+                                            <small>{{ depense.dateDepense|date('M d, Y') }}</small>
+                                        </td>
+                                        <td>
+                                            {{ depense.description }}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">{{ depense.categorie }}</span>
+                                        </td>
+                                        <td>
+                                            <strong>${{ depense.montant|number_format(2) }}</strong>
+                                        </td>
+                                        <td>
+                                            {% if depense.modePaiement %}
+                                                <small class="text-muted">{{ depense.modePaiement }}</small>
+                                            {% else %}
+                                                <small class="text-muted text-secondary">-</small>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div class="card-body text-center text-muted py-5">
+                            <i class="fas fa-inbox" style="font-size: 2rem;"></i>
+                            <p class="mt-3">No expenses found</p>
+                            <p class="small">Expenses will appear here when you purchase subscriptions</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<style>
+    .expenses-container {
+        background: linear-gradient(135deg, #f5f7fa 0%, #faddd1 100%);
+        min-height: 100vh;
+    }
+
+    .expenses-header {
+        background: white;
+        padding: 40px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Statistics Cards */
+    .stat-card {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 24px;
+    }
+
+    .stat-icon.total-spent {
+        background: #ffcccc;
+        color: #e74c3c;
+    }
+
+    .stat-icon.average-expense {
+        background: #ffe8cc;
+        color: #e67e22;
+    }
+
+    .stat-icon.max-expense {
+        background: #ffe0e0;
+        color: #c0392b;
+    }
+
+    .stat-icon.categories-count {
+        background: #d1ecf1;
+        color: #17a2b8;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1a3a52;
+        margin: 0;
+    }
+
+    /* Table Styling */
+    .table thead th {
+        background: #f8f9fa;
+        font-weight: 600;
+        border-bottom: 2px solid #e74c3c;
+    }
+
+    .table tbody tr:hover {
+        background-color: #fff5f5;
+    }
+</style>
+
+{% endblock %}

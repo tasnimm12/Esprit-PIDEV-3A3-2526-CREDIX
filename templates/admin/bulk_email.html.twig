@@ -1,0 +1,373 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Send Bulk Email - Admin Dashboard{% endblock %}
+
+{% block breadcrumb_current %}Send Bulk Email{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-0">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="display-5 mb-2">Send Email</h1>
+                        <p class="text-muted">Send messages to specific users or search by email</p>
+                    </div>
+                    <a href="{{ path('app_admin_dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fa fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alerts -->
+        {% if app.flashes %}
+            {% for type, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ type === 'success' ? 'success' : (type === 'error' ? 'danger' : 'warning') }} alert-dismissible fade show" role="alert">
+                        <i class="fa fa-{{ type === 'success' ? 'check-circle' : (type === 'error' ? 'exclamation-circle' : 'info-circle') }}"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        {% endif %}
+
+        <div class="row">
+            <!-- Main Form -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fa fa-envelope"></i> Compose Email
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ path('app_admin_bulk_email') }}" id="emailForm">
+                            <!-- Recipient Mode Selection -->
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <strong>Send To:</strong>
+                                </label>
+                                <div class="btn-group d-flex w-100" role="group">
+                                    <input type="radio" class="btn-check" name="recipient_mode" id="mode_search" value="search" checked>
+                                    <label class="btn btn-outline-primary flex-grow-1" for="mode_search">
+                                        <i class="fa fa-search"></i> Search Users
+                                    </label>
+
+                                    <input type="radio" class="btn-check" name="recipient_mode" id="mode_all" value="all">
+                                    <label class="btn btn-outline-primary flex-grow-1" for="mode_all">
+                                        <i class="fa fa-globe"></i> All Users
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- User Search Section (shown by default) -->
+                            <div id="searchSection" class="mb-4">
+                                <label for="userSearch" class="form-label">
+                                    <strong>Search Users by Email</strong>
+                                </label>
+                                <div class="input-group mb-3">
+                                    <input 
+                                        type="text" 
+                                        class="form-control form-control-lg" 
+                                        id="userSearch" 
+                                        placeholder="Type email or name to search..." 
+                                        autocomplete="off"
+                                    >
+                                    <span class="input-group-text">
+                                        <i class="fa fa-search"></i>
+                                    </span>
+                                </div>
+                                <div id="searchResults" class="list-group" style="display: none; max-height: 300px; overflow-y: auto;"></div>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fa fa-info-circle"></i> Type at least 2 characters to search
+                                </small>
+                            </div>
+
+                            <!-- Selected Users -->
+                            <div id="selectedUsersSection" class="mb-4">
+                                <label class="form-label">
+                                    <strong>Selected Recipients (<span id="selectedCount">0</span>)</strong>
+                                </label>
+                                <div id="selectedUsersList" class="border rounded p-3" style="min-height: 100px; background-color: #f8f9fa;">
+                                    <p class="text-muted mb-0">No users selected yet</p>
+                                </div>
+                                <!-- Hidden input to store selected user IDs -->
+                                <input type="hidden" id="selected_users" name="selected_users" value="[]">
+                            </div>
+
+                            <!-- Subject -->
+                            <div class="mb-3">
+                                <label for="subject" class="form-label">
+                                    <strong>Subject <span class="text-danger">*</span></strong>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    class="form-control form-control-lg" 
+                                    id="subject" 
+                                    name="subject" 
+                                    placeholder="Enter email subject line..." 
+
+                                >
+                                <small class="text-muted d-block mt-1">
+                                    This will be the email subject line visible to all recipients
+                                </small>
+                            </div>
+
+                            <!-- Message Body -->
+                            <div class="mb-3">
+                                <label for="body" class="form-label">
+                                    <strong>Message <span class="text-danger">*</span></strong>
+                                </label>
+                                <textarea 
+                                    class="form-control" 
+                                    id="body" 
+                                    name="body" 
+                                    rows="12" 
+                                    placeholder="Write your message here... You can use HTML formatting..." 
+                                    style="font-family: 'Monaco', 'Menlo', monospace; font-size: 13px;"
+                                ></textarea>
+                                <small class="text-muted d-block mt-2">
+                                    <i class="fa fa-info-circle"></i> 
+                                    <strong>Tip:</strong> You can use basic HTML tags like &lt;b&gt;, &lt;i&gt;, &lt;p&gt;, &lt;br&gt;, etc. for formatting.
+                                </small>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg flex-grow-1" id="sendBtn">
+                                    <i class="fa fa-paper-plane"></i> Send Email
+                                </button>
+                                <a href="{{ path('app_admin_dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                                    <i class="fa fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar Info -->
+            <div class="col-lg-4">
+                <!-- Recipients Info -->
+                <div class="card border-0 shadow-sm mb-3" id="recipientsCard">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fa fa-users"></i> Recipients
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Total Selected</small>
+                            <h3 class="text-info mb-0" id="recipientCount">0</h3>
+                        </div>
+                        <p class="text-muted small mb-0">
+                            <i class="fa fa-check-circle text-success"></i> 
+                            <span id="recipientMessage">Search and select users to send emails</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Email Template Preview -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="fa fa-eye"></i> Email Preview
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="bg-light p-3 rounded" style="border: 1px solid #ddd; font-size: 13px;">
+                            <strong>From:</strong> Insurance Management System<br>
+                            <strong>Subject:</strong> <span id="preview-subject">[Your subject here]</span><br>
+                            <strong>Message:</strong><br>
+                            <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">
+                                <p id="preview-body" style="color: #666; font-size: 12px;">[Your message preview will appear here]</p>
+                            </div>
+                        </div>
+                        <small class="text-muted d-block mt-2">
+                            <i class="fa fa-info-circle"></i> Preview updates as you type
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Warnings -->
+                <div class="alert alert-warning mt-3" role="alert">
+                    <h6 class="alert-heading mb-2">
+                        <i class="fa fa-exclamation-triangle"></i> Important
+                    </h6>
+                    <small>
+                        <ul class="mb-0" style="padding-left: 20px;">
+                            <li>Double-check your message before sending</li>
+                            <li>Select at least one user to send</li>
+                            <li>Failed emails will be reported after sending</li>
+                            <li>Recipients will see this as from: <strong>Insurance Management System</strong></li>
+                        </ul>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedUsers = {};
+
+        // Toggle between search and all modes
+        document.querySelectorAll('input[name="recipient_mode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const searchSection = document.getElementById('searchSection');
+                const selectedUsersSection = document.getElementById('selectedUsersSection');
+                const recipientsCard = document.getElementById('recipientsCard');
+                
+                if (this.value === 'search') {
+                    searchSection.style.display = 'block';
+                    selectedUsersSection.style.display = 'block';
+                    recipientsCard.style.display = 'block';
+                } else {
+                    searchSection.style.display = 'none';
+                    selectedUsersSection.style.display = 'none';
+                    recipientsCard.style.display = 'none';
+                }
+            });
+        });
+
+        // User search functionality
+        const searchInput = document.getElementById('userSearch');
+        const searchResults = document.getElementById('searchResults');
+        let searchTimeout;
+
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value.trim();
+
+            if (query.length < 2) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            searchTimeout = setTimeout(() => {
+                fetch(`{{ path('app_admin_search_users') }}?q=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(users => {
+                        searchResults.innerHTML = '';
+                        
+                        if (users.length === 0) {
+                            searchResults.innerHTML = '<div class="list-group-item">No users found</div>';
+                        } else {
+                            users.forEach(user => {
+                                const isSelected = selectedUsers[user.id];
+                                const item = document.createElement('button');
+                                item.type = 'button';
+                                item.className = `list-group-item list-group-item-action ${isSelected ? 'active' : ''}`;
+                                item.innerHTML = `
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <strong>${user.email}</strong><br>
+                                            <small class="text-muted">${user.name} (${user.role})</small>
+                                        </div>
+                                        <span class="badge ${isSelected ? 'bg-success' : 'bg-secondary'}">
+                                            ${isSelected ? '✓ Selected' : 'Select'}
+                                        </span>
+                                    </div>
+                                `;
+                                item.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    toggleUserSelection(user);
+                                });
+                                searchResults.appendChild(item);
+                            });
+                        }
+                        searchResults.style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error('Search error:', error);
+                        searchResults.innerHTML = '<div class="list-group-item text-danger">Error searching users</div>';
+                        searchResults.style.display = 'block';
+                    });
+            }, 300);
+        });
+
+        // Toggle user selection
+        function toggleUserSelection(user) {
+            if (selectedUsers[user.id]) {
+                delete selectedUsers[user.id];
+            } else {
+                selectedUsers[user.id] = user;
+            }
+            updateSelectedUsersList();
+            // Trigger search again to update UI
+            if (searchInput.value.length >= 2) {
+                searchInput.dispatchEvent(new Event('input'));
+            }
+        }
+
+        // Update selected users list
+        function updateSelectedUsersList() {
+            const list = document.getElementById('selectedUsersList');
+            const count = Object.keys(selectedUsers).length;
+            document.getElementById('selectedCount').textContent = count;
+            document.getElementById('recipientCount').textContent = count;
+            document.getElementById('selected_users').value = JSON.stringify(Object.keys(selectedUsers));
+
+            if (count === 0) {
+                list.innerHTML = '<p class="text-muted mb-0">No users selected yet</p>';
+                document.getElementById('recipientMessage').textContent = 'Search and select users to send emails';
+            } else {
+                list.innerHTML = Object.values(selectedUsers).map(user => `
+                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-white rounded border">
+                        <div>
+                            <strong>${user.email}</strong><br>
+                            <small class="text-muted">${user.name}</small>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeUser(${user.id})">
+                            <i class="fa fa-times"></i> Remove
+                        </button>
+                    </div>
+                `).join('');
+                document.getElementById('recipientMessage').textContent = `${count} recipient${count !== 1 ? 's' : ''} selected`;
+            }
+        }
+
+        // Remove user from selection
+        function removeUser(userId) {
+            delete selectedUsers[userId];
+            updateSelectedUsersList();
+            if (searchInput.value.length >= 2) {
+                searchInput.dispatchEvent(new Event('input'));
+            }
+        }
+
+        // Live preview of subject and message
+        document.getElementById('subject').addEventListener('input', function() {
+            document.getElementById('preview-subject').textContent = this.value || '[Your subject here]';
+        });
+
+        document.getElementById('body').addEventListener('input', function() {
+            const preview = this.value || '[Your message preview will appear here]';
+            document.getElementById('preview-body').textContent = preview.substring(0, 150) + (preview.length > 150 ? '...' : '');
+        });
+
+        // Form submission validation
+        document.getElementById('emailForm').addEventListener('submit', function(e) {
+            const mode = document.querySelector('input[name="recipient_mode"]:checked').value;
+            const subject = document.getElementById('subject').value;
+            
+            if (mode === 'search') {
+                const selectedCount = Object.keys(selectedUsers).length;
+                if (selectedCount === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one user to send the email to.');
+                    return;
+                }
+                if (!confirm(`Are you sure you want to send this email to ${selectedCount} user${selectedCount !== 1 ? 's' : ''}?\n\nSubject: ` + subject)) {
+                    e.preventDefault();
+                }
+            } else {
+                if (!confirm('Are you sure you want to send this email to ALL users?\n\nThis action cannot be undone.\n\nSubject: ' + subject)) {
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
+{% endblock %}

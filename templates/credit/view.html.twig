@@ -1,0 +1,163 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Credit Details - PIDEV{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5 pb-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 px-3 px-md-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Credit Details</h1>
+                <a href="{{ path('app_credit_list') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Application #{{ credit.getIdCredit() }}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Status -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Status</label>
+                            <div>
+                                {% set statusClass = credit.getStatutCredit() == 'ACCEPTE' ? 'success' : (credit.getStatutCredit() == 'REFUSE' ? 'danger' : (credit.getStatutCredit() == 'EN_ATTENTE' ? 'warning' : (credit.getStatutCredit() == 'TERMINE' ? 'secondary' : 'info'))) %}
+                                <span class="badge bg-{{ statusClass }} p-2">{{ credit.getStatutCredit()|replace({'_': ' '}) }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Application Date</label>
+                            <p>{{ credit.getDateDemande()|date('d/m/Y') }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Credit Information -->
+                    <hr>
+                    <h6 class="mb-3 font-weight-bold">Credit Information</h6>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Amount Requested</label>
+                            <p class="lead">${{ credit.getMontantDemande()|number_format(2, '.', ',') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Credit Type (Duration)</label>
+                            <p class="lead">{{ credit.getTypeCredit() }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Base Interest Rate</label>
+                            <p>{{ credit.getTauxInteret()|number_format(2) }}%</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Subscription Discount</label>
+                            <p>
+                                {% if credit.getReductionPourcentage() %}
+                                    <span class="badge bg-success">{{ credit.getReductionPourcentage()|number_format(1) }}%</span>
+                                {% else %}
+                                    <span class="text-muted">No discount</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Payment Details -->
+                    <hr>
+                    <h6 class="mb-3 font-weight-bold">Payment Details</h6>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Monthly Payment</label>
+                            <p class="lead text-success">${{ credit.getMensualite()|number_format(2, '.', ',') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Total Amount to Pay</label>
+                            <p>${{ credit.getMontantTotal()|number_format(2, '.', ',') }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Amount Remaining</label>
+                            <p>${{ credit.getMontantRestant()|number_format(2, '.', ',') }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Subscription Information -->
+                    {% if credit.getAbonnement() %}
+                        <hr>
+                        <h6 class="mb-3 font-weight-bold">Subscription Information</h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Subscription Type</label>
+                                <p>{{ credit.getAbonnement().getTypeAbonnement() }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Dates -->
+                    <hr>
+                    <h6 class="mb-3 font-weight-bold">Timeline</h6>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="text-muted small">Application Date</label>
+                            <p>{{ credit.getDateDemande()|date('d/m/Y') }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small">Start Date</label>
+                            <p>
+                                {% if credit.getDateDebut() %}
+                                    {{ credit.getDateDebut()|date('d/m/Y') }}
+                                {% else %}
+                                    <span class="text-muted">Pending approval</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="text-muted small">End Date</label>
+                            <p>
+                                {% if credit.getDateFin() %}
+                                    {{ credit.getDateFin()|date('d/m/Y') }}
+                                {% else %}
+                                    <span class="text-muted">Pending approval</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Refusal Reason -->
+                    {% if credit.getStatutCredit() == 'REFUSE' and credit.getMotifRefus() %}
+                        <hr>
+                        <div class="alert alert-danger" role="alert">
+                            <h6 class="alert-heading">Reason for Rejection</h6>
+                            <p class="mb-0">{{ credit.getMotifRefus() }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-muted {
+        color: #6c757d;
+    }
+    
+    .lead {
+        font-size: 1.25rem;
+        font-weight: 500;
+    }
+    
+    .badge {
+        padding: 0.5rem 1rem;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ contract.numeroContrat }} - Credix{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 offset-lg-2">
+                    <div class="border rounded p-4">
+                        <div class="row mb-4 align-items-center">
+                            <div class="col-lg-8">
+                                <h2 class="display-6">Contract #{{ contract.numeroContrat }}</h2>
+                                <p class="text-muted">Contract Details</p>
+                            </div>
+                            <div class="col-lg-4 text-end d-flex gap-2 justify-content-end flex-wrap">
+                                {% if contract.getStatut() == 'ACTIF' %}
+                                    <a href="{{ path('app_contract_download_pdf', { id: contract.id }) }}" class="btn btn-primary btn-sm">
+                                        <i class="fa fa-download me-2"></i>Download PDF
+                                    </a>
+                                {% endif %}
+                                {% if app.user and app.user.role == 'admin' %}
+                                    <a href="{{ path('app_admin_contract_edit', { id: contract.id }) }}" class="btn btn-warning btn-sm">
+                                        <i class="fa fa-edit me-2"></i>Edit
+                                    </a>
+                                {% endif %}
+                                <a href="{{ path('app_contract_list') }}" class="btn btn-secondary btn-sm">
+                                    <i class="fa fa-arrow-left me-2"></i>Back
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Status</label>
+                                <p>
+                                    {% if contract.getStatut() == 'ACCEPTED' %}
+                                        <span class="badge bg-success">Accepted</span>
+                                    {% elseif contract.getStatut() == 'ACTIF' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elseif contract.getStatut() == 'EXPIRE' %}
+                                        <span class="badge bg-danger">Expired</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ contract.getStatut() ?? 'Pending' }}</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Assurance ID</label>
+                                <p>{{ contract.assurance_id ?? 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">User ID</label>
+                                <p>{{ contract.utilisateur.id ?? 'N/A' }}</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Duration (months)</label>
+                                <p>{{ contract.dureeContrat ?? 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Signing Date</label>
+                                <p>
+                                    {% if contract.dateSignature %}
+                                        {{ contract.dateSignature|date('d/m/Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Expiration Date</label>
+                                <p>
+                                    {% if contract.dateFinContrat %}
+                                        {{ contract.dateFinContrat|date('d/m/Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Annual Ceiling</label>
+                                <p class="fs-5">
+                                    {% if contract.plafondAnnuel %}
+                                        ${{ contract.plafondAnnuel|number_format(2, '.', ',') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Reimbursement Rate</label>
+                                <p>{{ contract.tauxRemboursement ?? 'N/A' }}%</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label class="fw-bold">Waiting Period</label>
+                                <p>{{ contract.delaiCarence ?? 'N/A' }} days</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-bold">Special Conditions</label>
+                            <div class="border rounded p-3 bg-light">
+                                <p class="mb-0">{{ contract.conditionsParticulieres ?? 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-bold">Exclusions</label>
+                            <div class="border rounded p-3 bg-light">
+                                <p class="mb-0">{{ contract.exclusions ?? 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-bold">Beneficiary Clause</label>
+                            <div class="border rounded p-3 bg-light">
+                                <p class="mb-0">{{ contract.clauseBeneficiaire ?? 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+                            {% if contract.getStatut() == 'ACTIF' %}
+                                <a href="{{ path('app_contract_download_pdf', { id: contract.id }) }}" class="btn btn-primary">
+                                    <i class="fa fa-download me-2"></i>Download PDF
+                                </a>
+                            {% endif %}
+                            {% if app.user and app.user.role == 'admin' %}
+                                <a href="{{ path('app_admin_contract_edit', { id: contract.id }) }}" class="btn btn-warning">
+                                    <i class="fa fa-edit me-2"></i>Edit
+                                </a>
+                                <a href="{{ path('app_contract_delete', { id: contract.id }) }}" class="btn btn-danger" 
+                                    onclick="return confirm('Are you sure?')">
+                                    <i class="fa fa-trash me-2"></i>Delete
+                                </a>
+                            {% endif %}
+                            <a href="{{ path('app_contract_list') }}" class="btn btn-secondary">
+                                <i class="fa fa-arrow-left me-2"></i>Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

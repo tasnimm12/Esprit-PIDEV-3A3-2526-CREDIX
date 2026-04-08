@@ -1,0 +1,213 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Subscriptions - Credix{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <!-- Header -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <h1 class="display-4">My Subscriptions</h1>
+                        <a href="{{ path('app_abonnements') }}" class="btn btn-outline-primary">
+                            Browse Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Subscriptions -->
+            {% if user.abonnements|length > 0 %}
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <h3 class="mb-4">
+                            <i class="fa fa-check-circle text-success me-2"></i>
+                            Your Active Plans ({{ user.abonnements|length }})
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    {% for abonnement in user.abonnements %}
+                        <div class="col-lg-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-success text-white py-3">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <h5 class="mb-0">{{ abonnement.nomAbonnement }}</h5>
+                                        <span class="badge bg-light text-success">Active</span>
+                                    </div>
+                                </div>
+
+                                <div class="card-body p-4">
+                                    <!-- Pricing -->
+                                    <div class="mb-4 pb-4 border-bottom">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <h6 class="text-muted mb-2">Monthly</h6>
+                                                <p class="h5 text-primary">${{ abonnement.prixMensuel|number_format(2) }}</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <h6 class="text-muted mb-2">Annually</h6>
+                                                <p class="h5 text-primary">${{ abonnement.prixAnnuel|number_format(2) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Description -->
+                                    {% if abonnement.description %}
+                                        <div class="mb-4 pb-4 border-bottom">
+                                            <h6 class="text-muted mb-2">Description</h6>
+                                            <p class="text-muted small mb-0">{{ abonnement.description }}</p>
+                                        </div>
+                                    {% endif %}
+
+                                    <!-- Features -->
+                                    {% if abonnement.avantages %}
+                                        <div class="mb-4">
+                                            <h6 class="text-muted mb-3">Included Features</h6>
+                                            <ul class="list-unstyled small">
+                                                {% for avantage in abonnement.avantages|split('\n') %}
+                                                    {% if avantage|trim %}
+                                                        <li class="mb-2">
+                                                            <i class="fa fa-check text-success me-2"></i>
+                                                            {{ avantage|trim }}
+                                                        </li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Actions -->
+                                <div class="card-footer bg-light p-4">
+                                    <div class="d-flex gap-2">
+                                        <a href="{{ path('app_abonnement_detail', {'id': abonnement.idAbonnement}) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            View Details
+                                        </a>
+                                        <a href="{{ path('app_abonnement_unsubscribe', {'id': abonnement.idAbonnement}) }}" 
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Are you sure you want to unsubscribe from this plan?');">
+                                            Unsubscribe
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Available Plans -->
+                <div class="row mb-5 mt-5 pt-5 border-top">
+                    <div class="col-12">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <h3 class="mb-0">
+                                <i class="fa fa-star me-2"></i>
+                                Other Available Plans
+                            </h3>
+                            <a href="{{ path('app_abonnement_upgrade') }}" class="btn btn-sm btn-primary">
+                                Browse All Plans
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <!-- No Subscription Alert -->
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body p-5 text-center">
+                                <i class="fa fa-inbox fa-3x text-muted mb-4"></i>
+                                <h5 class="mb-3">No Active Subscriptions</h5>
+                                <p class="text-muted mb-4">You don't currently have any active subscriptions. Browse our plans and choose one that fits your needs.</p>
+                                <a href="{{ path('app_abonnements') }}" class="btn btn-primary">
+                                    <i class="fa fa-arrow-right me-2"></i>Browse Plans
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-light py-3">
+                                <h6 class="mb-0">Your Account</h6>
+                            </div>
+                            <div class="card-body p-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-3 pb-3 border-bottom">
+                                        <small class="text-muted">Name</small>
+                                        <p class="mb-0"><strong>{{ user.prenom }} {{ user.nom }}</strong></p>
+                                    </li>
+                                    <li class="mb-3 pb-3 border-bottom">
+                                        <small class="text-muted">Email</small>
+                                        <p class="mb-0">{{ user.email }}</p>
+                                    </li>
+                                    <li class="mb-3 pb-3 border-bottom">
+                                        <small class="text-muted">Account Status</small>
+                                        <p class="mb-0">
+                                            <span class="badge {% if user.statutCompte == 'ACTIF' %}bg-success{% else %}bg-warning{% endif %}">
+                                                {{ user.statutCompte|upper|default('INACTIVE') }}
+                                            </span>
+                                        </p>
+                                    </li>
+                                    <li>
+                                        <small class="text-muted">Loyalty Points</small>
+                                        <p class="mb-0"><strong>{{ user.pointsFidelite }}</strong> points</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Account Summary Sidebar (always visible) -->
+            {% if user.abonnements|length > 0 %}
+                <div class="row mt-5">
+                    <div class="col-lg-8"></div>
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-light py-3">
+                                <h6 class="mb-0">Account Summary</h6>
+                            </div>
+                            <div class="card-body p-4">
+                                <ul class="list-unstyled">
+                                    <li class="mb-3 pb-3 border-bottom">
+                                        <small class="text-muted">Subscriber</small>
+                                        <p class="mb-0"><strong>{{ user.prenom }} {{ user.nom }}</strong></p>
+                                    </li>
+                                    <li class="mb-3 pb-3 border-bottom">
+                                        <small class="text-muted">Email</small>
+                                        <p class="mb-0">{{ user.email }}</p>
+                                    </li>
+                                    <li class="mb-3 pb-3 border-bottom">
+                                        <small class="text-muted">Active Plans</small>
+                                        <p class="mb-0"><strong>{{ user.abonnements|length }}</strong></p>
+                                    </li>
+                                    <li>
+                                        <small class="text-muted">Loyalty Points</small>
+                                        <p class="mb-0"><strong>{{ user.pointsFidelite }}</strong> points</p>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Support Card -->
+                        <div class="card border-0 shadow-sm mt-3">
+                            <div class="card-body p-4 text-center">
+                                <h6 class="mb-3">Need Help?</h6>
+                                <p class="text-muted small mb-3">Contact our support team for assistance with your subscriptions.</p>
+                                <a href="#" class="btn btn-sm btn-primary">
+                                    <i class="fa fa-headset me-2"></i>Contact Support
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,151 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+    {% if contract %}
+        Edit Contract - Credix
+    {% else %}
+        New Contract - Credix
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 offset-lg-2">
+                    <h2 class="display-6 mb-4">{{ title }}</h2>
+
+                    {% if errors|length > 0 %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong>Validation Errors:</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for error in errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endif %}
+
+                    <form method="POST" class="border rounded p-5">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="numeroContrat" class="form-label">Contract Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="numeroContrat" name="numeroContrat" 
+                                    value="{{ contract.numeroContrat ?? '' }}" placeholder="e.g., CTR-2024-001">
+                                <small class="form-text text-muted">Required, max 255 characters</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="statut" class="form-label">Status</label>
+                                <select class="form-select" id="statut" name="statut">
+                                    <option value="">-- Select Status --</option>
+                                    <option value="ACTIF" {% if contract and contract.statut == 'ACTIF' %}selected{% endif %}>Active</option>
+                                    <option value="INACTIF" {% if contract and contract.statut == 'INACTIF' %}selected{% endif %}>Inactive</option>
+                                    <option value="EXPIRE" {% if contract and contract.statut == 'EXPIRE' %}selected{% endif %}>Expired</option>
+                                    <option value="SUSPENDU" {% if contract and contract.statut == 'SUSPENDU' %}selected{% endif %}>Suspended</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="assurance_id" class="form-label">Select Insurance <span class="text-danger">*</span></label>
+                                <select class="form-select" id="assurance_id" name="assurance_id">
+                                    <option value="">-- Select an Insurance Policy --</option>
+                                    {% for assurance in assurances %}
+                                        <option value="{{ assurance.id }}" {% if (contract and contract.assurance and contract.assurance.id == assurance.id) or app.request.query.get('assurance_id') == assurance.id %}selected{% endif %}>
+                                            {{ assurance.compagnie }} - {{ assurance.typeAssurance }} (#{{ assurance.numeroPolice }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">Required</small>
+                            </div>
+                            {% if app.user.role == 'admin' %}
+                                <div class="col-md-6">
+                                    <label for="utilisateur_id" class="form-label">User</label>
+                                    <input type="number" class="form-control" id="utilisateur_id" name="utilisateur_id" 
+                                        value="{{ contract.utilisateur.id ?? app.user.id }}" placeholder="e.g., 1">
+                                    <small class="form-text text-muted">Leave empty for current user</small>
+                                </div>
+                            {% else %}
+                                <input type="hidden" name="utilisateur_id" value="{{ app.user.id }}">
+                            {% endif %}
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="dateSignature" class="form-label">Signing Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="dateSignature" name="dateSignature" 
+                                    value="{{ contract and contract.dateSignature ? contract.dateSignature|date('Y-m-d') : '' }}">
+                                <small class="form-text text-muted">Required</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="dateFinContrat" class="form-label">Expiration Date</label>
+                                <input type="date" class="form-control" id="dateFinContrat" name="dateFinContrat" 
+                                    value="{{ contract and contract.dateFinContrat ? contract.dateFinContrat|date('Y-m-d') : '' }}">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="dureeContrat" class="form-label">Duration (months)</label>
+                                <input type="number" class="form-control" id="dureeContrat" name="dureeContrat" 
+                                    value="{{ contract.dureeContrat ?? '' }}" placeholder="e.g., 12">
+                                <small class="form-text text-muted">Positive integer only</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="plafondAnnuel" class="form-label">Annual Ceiling ($)</label>
+                                <input type="number" class="form-control" id="plafondAnnuel" 
+                                    name="plafondAnnuel" value="{{ contract.plafondAnnuel ?? '' }}" placeholder="50000.00">
+                                <small class="form-text text-muted">Positive number only</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="tauxRemboursement" class="form-label">Reimbursement Rate (%)</label>
+                                <input type="number" class="form-control" id="tauxRemboursement" 
+                                    name="tauxRemboursement" value="{{ contract.tauxRemboursement ?? '' }}" placeholder="80">
+                                <small class="form-text text-muted">0-100 only</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="delaiCarence" class="form-label">Waiting Period (days)</label>
+                                <input type="number" class="form-control" id="delaiCarence" name="delaiCarence" 
+                                    value="{{ contract.delaiCarence ?? '' }}" placeholder="30">
+                                <small class="form-text text-muted">Positive integer only</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="conditionsParticulieres" class="form-label">Special Conditions</label>
+                            <textarea class="form-control" id="conditionsParticulieres" name="conditionsParticulieres" rows="3" placeholder="Enter any special terms...">{{ contract.conditionsParticulieres ?? '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="exclusions" class="form-label">Exclusions</label>
+                            <textarea class="form-control" id="exclusions" name="exclusions" rows="3" placeholder="List any exclusions...">{{ contract.exclusions ?? '' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="clauseBeneficiaire" class="form-label">Beneficiary Clause</label>
+                            <textarea class="form-control" id="clauseBeneficiaire" name="clauseBeneficiaire" rows="2" placeholder="Define beneficiary terms...">{{ contract.clauseBeneficiaire ?? '' }}</textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-save me-2"></i>{{ contract ? 'Update' : 'Create' }}
+                            </button>
+                            <a href="{{ path('app_contract_list') }}" class="btn btn-secondary">
+                                <i class="fa fa-arrow-left me-2"></i>Back
+                            </a>
+                        </div>
+
+                        <p class="text-muted mt-3">
+                            <small><span class="text-danger">*</span> = Required field</small>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

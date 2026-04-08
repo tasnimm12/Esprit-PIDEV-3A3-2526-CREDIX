@@ -1,0 +1,43 @@
+Insurance Claim Notification
+===============================================
+
+Dear {{ sinistre.utilisateur.prenom }} {{ sinistre.utilisateur.nom }},
+
+{% if isApproved %}
+We are pleased to inform you that your insurance claim has been APPROVED.
+
+Your approved claim will proceed to payment processing. You should expect to receive your funds within 5-7 business days.
+{% else %}
+We regret to inform you that your insurance claim has been REJECTED.
+
+Please review the explanation below for details about this decision.
+{% endif %}
+
+CLAIM DETAILS
+===============================================
+
+Claim Number: #{{ claimNumber }}
+Claim Date: {{ sinistre.dateSinistre|date('F d, Y') }}
+{% if amount %}
+Claim Amount: ${{ amount|number_format(2) }}
+{% endif %}
+Decision Date: {{ dateResponse|date('F d, Y') }}
+
+Description:
+{{ description }}
+
+{% if adminResponse %}
+
+ADMINISTRATOR'S COMMENTS
+===============================================
+
+{{ adminResponse }}
+{% endif %}
+
+You can view full details of your claim by logging into your account and navigating to the claims section.
+
+If you have any questions about this decision or need further assistance, please don't hesitate to contact us.
+
+---
+This is an automated message from the Insurance Claims System.
+© 2026 Insurance Management System. All rights reserved.

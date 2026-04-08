@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }} - Credix{% endblock %}
+
+{% block content %}
+<div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="bg-white border rounded p-5 wow fadeInUp" data-wow-delay="0.1s">
+                    <h1 class="display-5 mb-4">{{ title }}</h1>
+
+                    <!-- Flash Messages -->
+                    {% if app.flashes %}
+                        {% for type, messages in app.flashes %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ type === 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
+
+                    {% include '_partials/validation_errors.html.twig' %}
+
+                    <form method="POST" enctype="multipart/form-data" id="claimForm">
+                        <div class="form-group mb-4">
+                            <label for="contrat_id" class="form-label">Select Contract <span class="text-danger">*</span></label>
+                            <select class="form-control" id="contrat_id" name="contrat_id" {% if isEdit|default(false) %}disabled{% endif %}>>
+                                <option value="">-- Choose a contract --</option>
+                                {% for contract in contracts %}
+                                    <option value="{{ contract.id }}" 
+                                        {% if sinistre and sinistre.contrat.id == contract.id %}selected{% endif %}>
+                                        {{ contract.numeroContrat }} - {{ contract.assurance.nomAssurance ?? 'N/A' }}
+                                        (Status: {{ contract.statut }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Only active contracts are available</small>
+                            <div class="invalid-feedback d-block" id="contratError"></div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="date_sinistre" class="form-label">Date of Incident <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="date_sinistre" name="date_sinistre" 
+                                value="{% if sinistre and sinistre.dateSinistre %}{{ sinistre.dateSinistre|date('Y-m-d') }}{% endif %}" 
+                                placeholder="Sélectionner la date du sinistre">
+                            <small class="form-text text-muted">The date cannot be in the future</small>
+                            <div class="invalid-feedback d-block" id="dateError"></div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="description" class="form-label">Claim Description <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="description" name="description" rows="6">{% if sinistre %}{{ sinistre.description }}{% endif %}</textarea>
+                            <small class="form-text text-muted">Provide detailed information about the claim (10-5000 characters)</small>
+                            <div class="invalid-feedback d-block" id="descriptionError"></div>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="preuves" class="form-label">Evidence / Supporting Documents</label>
+                            <input type="file" class="form-control" id="preuves" name="preuves[]" multiple accept="image/*,.pdf,.doc,.docx">
+                            <small class="form-text text-muted">Upload images, PDFs, or documents as evidence (Max 5 files, 25MB each)</small>
+                            <div class="invalid-feedback d-block" id="fileError"></div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <button type="submit" class="btn btn-primary w-100 py-3">
+                                    {% if isEdit|default(false) %}
+                                        Update Claim
+                                    {% else %}
+                                        File Claim
+                                    {% endif %}
+                                </button>
+                            </div>
+                            <div class="col-lg-6">
+                                <a href="{% if isEdit|default(false) %}{{ path('app_sinistre_show', {id: sinistre.id}) }}{% else %}{{ path('app_sinistre_list') }}{% endif %}" class="btn btn-secondary w-100 py-3">
+                                    Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

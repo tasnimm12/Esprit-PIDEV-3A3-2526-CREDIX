@@ -1,0 +1,37 @@
+# This file is the entry point to configure your own services
+# Place the unique name of your service as the key (shortening the fully qualified class name)
+#
+# in the file that defines Symfony application's services.
+#
+# See also: https://symfony.com/doc/current/service_container.html
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+    
+    # SMS Service with environment variable binding
+    App\Service\SmsService:
+        arguments:
+            $smsProvider: '%env(string:SMS_PROVIDER)%'
+            $smsApiKey: '%env(string:SMS_API_KEY)%'
+            $smsApiSecret: '%env(string:SMS_API_SECRET)%'
+            $countryCode: '%env(string:SMS_COUNTRY_CODE)%'
+            $senderPhone: '%env(string:SMS_SENDER_PHONE)%'
+            $verifyServiceId: '%env(string:TWILIO_VERIFY_SERVICE_ID)%'
+            $verificationChannel: '%env(string:VERIFICATION_CHANNEL)%'
+            $whatsappSandboxNumber: '%env(string:WHATSAPP_SANDBOX_NUMBER)%'
+            $whatsappApiMethod: '%env(string:WHATSAPP_API_METHOD)%'
+    
+    # Make Local Analysis service public for testing
+    App\Service\LocalImageAnalysisService:
+        public: true
+    
+    # Make Claim Notification service public for testing
+    App\Service\ClaimNotificationService:
+        public: true

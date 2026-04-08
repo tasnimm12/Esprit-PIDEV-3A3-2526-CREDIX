@@ -1,0 +1,117 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Profile - Credix{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <!-- Profile Card -->
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body text-center">
+                            <div class="mb-3">
+                                <i class="fa fa-user-circle fa-5x text-primary"></i>
+                            </div>
+                            <h4 class="card-title">{{ user.prenom }} {{ user.nom }}</h4>
+                            <p class="text-muted">{{ user.email }}</p>
+                            <p class="text-muted small">
+                                <i class="fa fa-user-tag me-1"></i>
+                                Role: <strong>{{ user.role|upper }}</strong>
+                            </p>
+                            <hr>
+                            {% if user.dateNaissance %}
+                                <p class="text-muted small mb-0">
+                                    <i class="fa fa-birthday-cake me-1"></i>
+                                    Born: {{ user.dateNaissance|date('d/m/Y') }}
+                                </p>
+                            {% endif %}
+                            <div class="d-grid gap-2 mt-3">
+                                <a href="{{ path('app_profile_edit') }}" class="btn btn-primary">
+                                    <i class="fa fa-edit me-2"></i>Edit Profile
+                                </a>
+                                <a href="{{ path('app_logout') }}" class="btn btn-outline-danger">
+                                    <i class="fa fa-sign-out me-2"></i>Logout
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Account Status -->
+                    <div class="card shadow-sm border-0 mt-3">
+                        <div class="card-body">
+                            <h6 class="card-title mb-3">Account Status</h6>
+                            {% if user.statutCompte == 'ACTIF' %}
+                                <span class="badge bg-success"><i class="fa fa-check-circle me-1"></i>Active</span>
+                            {% else %}
+                                <span class="badge bg-danger"><i class="fa fa-times-circle me-1"></i>{{ user.statutCompte ?? 'Inactive' }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-8">
+                    <!-- Personal Information -->
+                    <div class="card shadow-sm border-0 mb-4">
+                        <div class="card-header bg-light border-0">
+                            <h5 class="card-title mb-0">
+                                <i class="fa fa-user me-2"></i>Personal Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="fw-bold">First Name</label>
+                                    <p>{{ user.prenom ?? 'Not provided' }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="fw-bold">Last Name</label>
+                                    <p>{{ user.nom ?? 'Not provided' }}</p>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="fw-bold">Email Address</label>
+                                    <p>{{ user.email ?? 'Not provided' }}</p>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="fw-bold">Phone Number</label>
+                                    <p>{{ user.telephone ?? 'Not provided' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security -->
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-light border-0">
+                            <h5 class="card-title mb-0">
+                                <i class="fa fa-lock me-2"></i>Security
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="fw-bold">Password</label>
+                                <p class="text-muted">Your password is securely encrypted</p>
+                                <a href="{{ path('app_profile_edit') }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fa fa-key me-1"></i>Change Password
+                                </a>
+                            </div>
+
+                            <hr>
+
+                            <div>
+                                <label class="fw-bold">Two-Factor Authentication</label>
+                                <p class="text-muted">Add an extra layer of security to your account</p>
+                                <button class="btn btn-sm btn-outline-secondary" disabled>
+                                    <i class="fa fa-shield me-1"></i>Coming Soon
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

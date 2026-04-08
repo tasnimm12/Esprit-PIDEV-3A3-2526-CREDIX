@@ -1,0 +1,134 @@
+{# Display damage analysis for a claim #}
+{% if sinistre.damageAnalyses|length > 0 %}
+    <div class="card border-primary mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="fa fa-robot me-2"></i>AI Damage Analysis
+            </h5>
+        </div>
+        <div class="card-body">
+            {% for analysis in sinistre.damageAnalyses %}
+                <div class="damage-analysis-item mb-4 pb-4 border-bottom" data-analysis-id="{{ analysis.id }}">
+                    <!-- Evidence Reference -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                <i class="fa fa-image me-1"></i>
+                                Evidence: <strong>{{ analysis.preuve.nomFichier }}</strong>
+                            </small>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <small class="text-muted">
+                                <i class="fa fa-calendar me-1"></i>
+                                Analyzed: <strong>{{ analysis.analyzedAt|date('d/m/Y H:i') }}</strong>
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Severity Badge -->
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <span class="badge bg-{{ analysis.severityColor }} p-2">
+                                <i class="fa {{ analysis.severityIcon }} me-1"></i>
+                                {{ analysis.severity|upper }}: {{ analysis.damageType }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Details in Grid -->
+                    <div class="row mb-3">
+                        <!-- Affected Area -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="analysis-stat">
+                                <small class="text-muted d-block mb-1">Affected Area</small>
+                                <div class="display-6 text-primary">{{ analysis.affectedAreaPercentage }}%</div>
+                            </div>
+                        </div>
+
+                        <!-- Estimated Cost -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="analysis-stat">
+                                <small class="text-muted d-block mb-1">Estimated Cost</small>
+                                {% if analysis.estimatedCost %}
+                                    <div class="display-6 text-success">${{ analysis.estimatedCost|number_format(2) }}</div>
+                                {% else %}
+                                    <div class="text-muted small">Not available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- AI Model -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="analysis-stat">
+                                <small class="text-muted d-block mb-1">AI Model</small>
+                                <small class="d-block">
+                                    <i class="fa fa-microchip me-1"></i>{{ analysis.aiModel }}
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Severity Level -->
+                        <div class="col-md-6 col-lg-3">
+                            <div class="analysis-stat">
+                                <small class="text-muted d-block mb-1">Severity</small>
+                                <small class="badge bg-{{ analysis.severityColor }}">{{ analysis.severity|upper }}</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Analysis -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="card-title mb-3">
+                                        <i class="fa fa-file-alt me-2"></i>Detailed Analysis
+                                    </h6>
+                                    <p class="card-text">{{ analysis.analysisDetails }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if not loop.last %}
+                    <div class="mb-4"></div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="fa fa-info-circle me-2"></i>
+        <strong>No AI analysis yet.</strong> Upload image evidence to get automatic damage analysis.
+    </div>
+{% endif %}
+
+<style>
+    .damage-analysis-item {
+        animation: slideIn 0.3s ease-in-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .analysis-stat {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #0d6efd;
+    }
+
+    .analysis-stat .display-6 {
+        font-size: 1.8rem;
+        margin: 0;
+    }
+</style>

@@ -1,0 +1,160 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Edit User - Admin - Credix{% endblock %}
+
+{% block breadcrumb_current %}Edit User{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="display-6 mb-0">Edit User</h1>
+                <p class="text-muted">Update user information</p>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <form method="POST" action="{{ path('app_admin_users_edit', {'id': user.id}) }}">
+                            <div class="row g-3">
+                                <!-- First Name -->
+                                <div class="col-md-6">
+                                    <label for="prenom" class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="prenom" name="prenom" value="{{ user.prenom }}">
+                                </div>
+
+                                <!-- Last Name -->
+                                <div class="col-md-6">
+                                    <label for="nom" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="nom" name="nom" value="{{ user.nom }}">
+                                </div>
+
+                                <!-- Email -->
+                                <div class="col-12">
+                                    <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+                                </div>
+
+                                <!-- Phone -->
+                                <div class="col-md-6">
+                                    <label for="telephone" class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="telephone" name="telephone" value="{{ user.telephone ?? '' }}">
+                                </div>
+
+                                <!-- Role -->
+                                <div class="col-md-6">
+                                    <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="role" name="role">
+                                        <option value="">-- Select Role --</option>
+                                        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                                        <option value="client" {% if user.role == 'client' %}selected{% endif %}>Client</option>
+                                        <option value="organisateur" {% if user.role == 'organisateur' %}selected{% endif %}>Organisateur</option>
+                                    </select>
+                                </div>
+
+                                <!-- Account Status -->
+                                <div class="col-md-6">
+                                    <label for="statut_compte" class="form-label">Account Status</label>
+                                    <select class="form-select" id="statut_compte" name="statut_compte">
+                                        <option value="">-- Select Status --</option>
+                                        <option value="ACTIF" {% if user.statutCompte == 'ACTIF' or user.statutCompte == 'actif' %}selected{% endif %}>Active</option>
+                                        <option value="INACTIF" {% if user.statutCompte == 'INACTIF' or user.statutCompte == 'inactif' %}selected{% endif %}>Inactive</option>
+                                        <option value="SUSPENDU" {% if user.statutCompte == 'SUSPENDU' or user.statutCompte == 'suspendu' %}selected{% endif %}>Suspended</option>
+                                    </select>
+                                </div>
+
+                                <!-- Password -->
+                                <div class="col-12">
+                                    <label for="mot_de_passe" class="form-label">New Password <span class="text-muted">(leave empty to keep current password)</span></label>
+                                    <input type="password" class="form-control" id="mot_de_passe" name="mot_de_passe" placeholder="Enter new password (optional)">
+                                </div>
+
+                                <!-- User Info -->
+                                <div class="col-12">
+                                    <div class="alert alert-info alert-sm" role="alert">
+                                        <small>
+                                            <strong>User ID:</strong> #{{ user.id }}<br>
+                                            <strong>Email:</strong> {{ user.email }}
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="col-12 d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fa fa-save me-2"></i>Save Changes
+                                    </button>
+                                    <a href="{{ path('app_admin_users') }}" class="btn btn-secondary">
+                                        <i class="fa fa-times me-2"></i>Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Details Sidebar -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">User Details</h5>
+                        <dl class="row text-sm">
+                            <dt class="col-sm-6">ID:</dt>
+                            <dd class="col-sm-6">
+                                <span class="badge bg-light text-dark">#{{ user.id }}</span>
+                            </dd>
+
+                            <dt class="col-sm-6">Email:</dt>
+                            <dd class="col-sm-6">
+                                <small>{{ user.email }}</small>
+                            </dd>
+
+                            <dt class="col-sm-6">Role:</dt>
+                            <dd class="col-sm-6">
+                                {% if user.role == 'admin' %}
+                                    <span class="badge bg-danger">Admin</span>
+                                {% elseif user.role == 'client' %}
+                                    <span class="badge bg-primary">Client</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ user.role }}</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-6">Status:</dt>
+                            <dd class="col-sm-6">
+                                {% if user.statutCompte == 'ACTIF' or user.statutCompte == 'actif' or user.phoneVerified %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Inactive</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-6">Loyalty Points:</dt>
+                            <dd class="col-sm-6">
+                                <strong>{{ user.pointsFidelite ?? 0 }}</strong>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <!-- Danger Zone -->
+                <div class="card border-danger shadow-sm">
+                    <div class="card-header bg-danger text-white py-3">
+                        <h5 class="mb-0"><i class="fa fa-exclamation-triangle me-2"></i>Danger Zone</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-3">Irreversible actions</p>
+                        <button type="button" class="btn btn-outline-danger btn-sm w-100" disabled title="Delete functionality coming soon">
+                            <i class="fa fa-trash me-2"></i>Delete User
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

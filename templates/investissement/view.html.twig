@@ -1,0 +1,124 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Investment Details{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5 pb-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>Investment Details</h1>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('app_investissement_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5>Investment Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">Status</small>
+                            <p>
+                                <span class="badge bg-{% if investissement.getStatutInvestissement() == 'EN_ATTENTE' %}warning{% elseif investissement.getStatutInvestissement() == 'ACCEPTE' %}success{% elseif investissement.getStatutInvestissement() == 'REJETE' %}danger{% else %}secondary{% endif %} fs-6">
+                                    {{ investissement.getStatutInvestissement() }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Amount Invested</small>
+                            <p class="h5 text-success">{{ investissement.getMontantinvesti()|number_format(2, '.', ',') }} D.T</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">Investment Date</small>
+                            <p>{{ investissement.getDateinves()|date('d/m/Y') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Payment Method</small>
+                            <p>{{ investissement.getModepaiement() }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5>Project Information</h5>
+                </div>
+                <div class="card-body">
+                    <h6>
+                        <a href="{{ path('app_projet_view', {id: investissement.getProjet().getIdprojet()}) }}">
+                            {{ investissement.getProjet().getNomprojet() }}
+                        </a>
+                    </h6>
+                    <p class="text-muted">{{ investissement.getProjet().getSecteur() }}</p>
+                    <p>{{ investissement.getProjet().getDescription() ?? 'No description' }}</p>
+                </div>
+            </div>
+
+            {% if isAdmin %}
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5>Admin Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if investissement.getStatutInvestissement() == 'EN_ATTENTE' %}
+                    <div class="d-grid gap-2">
+                        <form action="{{ path('app_investissement_accept', {id: investissement.getIdinves()}) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-success btn-block" onclick="return confirm('Accept this investment?')">
+                                <i class="fas fa-check"></i> Accept Investment
+                            </button>
+                        </form>
+                        <form action="{{ path('app_investissement_reject', {id: investissement.getIdinves()}) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-warning btn-block" onclick="return confirm('Reject this investment? Amount will be refunded.')">
+                                <i class="fas fa-times"></i> Reject Investment
+                            </button>
+                        </form>
+                        <form action="{{ path('app_investissement_delete', {id: investissement.getIdinves()}) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-block" onclick="return confirm('Delete this investment? Amount will be refunded.')">
+                                <i class="fas fa-trash"></i> Delete Investment
+                            </button>
+                        </form>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> This investment has already been processed.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5>Investor Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Name</small>
+                        <p>{{ investissement.getUtilisateur().getPrenom() }} {{ investissement.getUtilisateur().getNom() }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Email</small>
+                        <p>{{ investissement.getUtilisateur().getEmail() }}</p>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Bank Account</small>
+                        <p>{{ investissement.getCompte().getNumeroCompte() }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

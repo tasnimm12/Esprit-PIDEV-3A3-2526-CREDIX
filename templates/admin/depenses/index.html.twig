@@ -1,0 +1,147 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Manage Expenses - Admin{% endblock %}
+
+{% block breadcrumb_current %}Expenses{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Expenses Management</h1>
+            <p class="text-muted">View and manage all system expenses</p>
+        </div>
+        <a href="{{ path('app_admin_depense_new') }}" class="btn btn-primary">
+            <i class="fa fa-plus"></i> Create Expense
+        </a>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Search by description or user email..." value="{{ search }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="sort" class="form-select">
+                        <option value="date_depense" {% if sort == 'date_depense' %}selected{% endif %}>Date</option>
+                        <option value="montant" {% if sort == 'montant' %}selected{% endif %}>Amount</option>
+                        <option value="id" {% if sort == 'id' %}selected{% endif %}>ID</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="order" class="form-select">
+                        <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>Descending</option>
+                        <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>Ascending</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-outline-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    {% if app.flashes('success') %}
+        {% for message in app.flashes('success') %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fa fa-check-circle"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if app.flashes('error') %}
+        {% for message in app.flashes('error') %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa fa-exclamation-circle"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Expenses Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Description</th>
+                        <th>User</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Date</th>
+                        <th>Payment Method</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if depenses|length > 0 %}
+                        {% for depense in depenses %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-secondary">{{ depense.id }}</span>
+                                </td>
+                                <td>
+                                    <small>{{ depense.description }}</small>
+                                </td>
+                                <td>
+                                    <small>
+                                        {% if depense.utilisateur %}
+                                            <i class="fa fa-user"></i> {{ depense.utilisateur.prenom }} {{ depense.utilisateur.nom }}<br>
+                                            <span class="text-muted">{{ depense.utilisateur.email }}</span>
+                                        {% else %}
+                                            <span class="text-muted">User not found</span>
+                                        {% endif %}
+                                    </small>
+                                </td>
+                                <td>
+                                    <small>{{ depense.categorie }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark">${{ depense.montant|number_format(2) }}</span>
+                                </td>
+                                <td>
+                                    <small>{{ depense.dateDepense|date('d/m/Y') }}</small>
+                                </td>
+                                <td>
+                                    <small>{{ depense.modePaiement }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ path('app_admin_depense_edit', {id: depense.id}) }}" class="btn btn-outline-warning" title="Edit">
+                                            <i class="fa fa-edit"></i>
+                                        </a>
+                                        <a href="{{ path('app_admin_depense_delete', {id: depense.id}) }}" class="btn btn-outline-danger" title="Delete" onclick="return confirm('Are you sure?')">
+                                            <i class="fa fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <i class="fa fa-inbox fa-2x text-muted mb-2"></i>
+                                <p class="text-muted">No expenses found</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

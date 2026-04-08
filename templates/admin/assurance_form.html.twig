@@ -1,0 +1,286 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}
+    {% if assurance %}
+        Edit Insurance Policy - Admin - Credix
+    {% else %}
+        New Insurance Policy - Admin - Credix
+    {% endif %}
+{% endblock %}
+
+{% block breadcrumb_current %}
+    {% if assurance %}
+        Edit Policy
+    {% else %}
+        New Policy
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="display-6 mb-2">
+                            {% if assurance %}
+                                Edit Insurance Policy
+                            {% else %}
+                                Create New Insurance Policy
+                            {% endif %}
+                        </h1>
+                        <p class="text-muted">Fill in the form below to {% if assurance %}update{% else %}create{% endif %} an insurance policy</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Errors Alert -->
+        {% if errors|length > 0 %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong><i class="fa fa-exclamation-circle me-2"></i>Validation Errors:</strong>
+                        <ul class="mb-0 mt-2">
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Form Card -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-5">
+                        <form method="POST">
+                            <!-- Basic Information Section -->
+                            <div class="mb-4">
+                                <h5 class="card-title mb-3"><i class="fa fa-info-circle me-2 text-primary"></i>Basic Information</h5>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="typeAssurance" class="form-label">Insurance Type <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="typeAssurance" name="type_assurance">
+                                            <option value="">-- Select Type --</option>
+                                            <option value="SANTE" {% if assurance and assurance.typeAssurance == 'SANTE' %}selected{% endif %}>Health</option>
+                                            <option value="VIE" {% if assurance and assurance.typeAssurance == 'VIE' %}selected{% endif %}>Life</option>
+                                            <option value="AUTO" {% if assurance and assurance.typeAssurance == 'AUTO' %}selected{% endif %}>Auto</option>
+                                            <option value="HABITATION" {% if assurance and assurance.typeAssurance == 'HABITATION' %}selected{% endif %}>Home</option>
+                                            <option value="RESPONSABILITE_CIVILE" {% if assurance and assurance.typeAssurance == 'RESPONSABILITE_CIVILE' %}selected{% endif %}>Liability</option>
+                                            <option value="SCOLAIRE" {% if assurance and assurance.typeAssurance == 'SCOLAIRE' %}selected{% endif %}>School</option>
+                                            <option value="VOYAGE" {% if assurance and assurance.typeAssurance == 'VOYAGE' %}selected{% endif %}>Travel</option>
+                                            <option value="PROFESSIONNELLE" {% if assurance and assurance.typeAssurance == 'PROFESSIONNELLE' %}selected{% endif %}>Professional</option>
+                                        </select>
+                                        <small class="form-text text-muted d-block mt-1">Required field</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="compagnie" class="form-label">Insurance Company <span class="text-danger">*</span></label>
+                                        <select class="form-select" id="compagnie" name="compagnie">
+                                            <option value="">-- Select Company --</option>
+                                            <option value="GAT" {% if assurance and assurance.compagnie == 'GAT' %}selected{% endif %}>GAT</option>
+                                            <option value="COMAR" {% if assurance and assurance.compagnie == 'COMAR' %}selected{% endif %}>COMAR</option>
+                                            <option value="BIAT" {% if assurance and assurance.compagnie == 'BIAT' %}selected{% endif %}>BIAT</option>
+                                            <option value="ZITOUNA" {% if assurance and assurance.compagnie == 'ZITOUNA' %}selected{% endif %}>ZITOUNA</option>
+                                        </select>
+                                        <small class="form-text text-muted d-block mt-1">Required field</small>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="numeroPolice" class="form-label">Policy Number <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="numeroPolice" name="numero_police"
+                                            value="{{ assurance and assurance.numeroPolice ? assurance.numeroPolice : '' }}" placeholder="e.g., POL-123456">
+                                        <small class="form-text text-muted d-block mt-1">Max 100 characters</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="statut" class="form-label">Status</label>
+                                        <select class="form-select" id="statut" name="statut">
+                                            <option value="ACTIF" {% if assurance and assurance.statut == 'ACTIF' %}selected{% endif %}>Active</option>
+                                            <option value="EXPIRE" {% if assurance and assurance.statut == 'EXPIRE' %}selected{% endif %}>Expired</option>
+                                            <option value="RESILIE" {% if assurance and assurance.statut == 'RESILIE' %}selected{% endif %}>Terminated</option>
+                                            <option value="SUSPENDU" {% if assurance and assurance.statut == 'SUSPENDU' %}selected{% endif %}>Suspended</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Coverage Details Section -->
+                            <div class="mb-4">
+                                <h5 class="card-title mb-3"><i class="fa fa-shield me-2 text-success"></i>Coverage Details</h5>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="montantCouverture" class="form-label">Coverage Amount ($) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="montantCouverture" 
+                                            name="montant_couverture" value="{{ assurance and assurance.montantCouverture ? assurance.montantCouverture : '' }}"
+                                            placeholder="50000.00">
+                                        <small class="form-text text-muted d-block mt-1">Positive number only</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="franchise" class="form-label">Deductible ($) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="franchise" 
+                                            name="franchise" value="{{ assurance and assurance.franchise ? assurance.franchise : '' }}"
+                                            placeholder="500.00">
+                                        <small class="form-text text-muted d-block mt-1">Positive number only</small>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="garantiesIncluses" class="form-label">Coverage Details & Exclusions</label>
+                                    <textarea class="form-control" id="garantiesIncluses" name="garanties_incluses" rows="4" 
+                                        placeholder="List all covered items and exclusions...">{{ assurance and assurance.garantiesIncluses ? assurance.garantiesIncluses : '' }}</textarea>
+                                    <small class="form-text text-muted d-block mt-1">Describe what is covered and what is excluded</small>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Premium Section -->
+                            <div class="mb-4">
+                                <h5 class="card-title mb-3"><i class="fa fa-dollar-sign me-2 text-info"></i>Premium Information</h5>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="primeAnnuelle" class="form-label">Annual Premium ($) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="primeAnnuelle" 
+                                            name="prime_annuelle" value="{{ assurance and assurance.primeAnnuelle ? assurance.primeAnnuelle : '' }}"
+                                            placeholder="1200.00">
+                                        <small class="form-text text-muted d-block mt-1">Positive number only</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="primeMensuelle" class="form-label">Monthly Premium ($)</label>
+                                        <input type="number" class="form-control" id="primeMensuelle" 
+                                            name="prime_mensuelle" value="{{ assurance and assurance.primeMensuelle ? assurance.primeMensuelle : '' }}"
+                                            placeholder="100.00">
+                                        <small class="form-text text-muted d-block mt-1">Auto-calculated: Annual Premium ÷ 12</small>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="prixAssurance" class="form-label">Subscription Cost ($)</label>
+                                        <input type="number" class="form-control" id="prixAssurance" 
+                                            name="prix_assurance" value="{{ assurance and assurance.prixAssurance ? assurance.prixAssurance : '' }}"
+                                            placeholder="150.00">
+                                        <small class="form-text text-muted d-block mt-1">Cost to subscribe to this policy</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="modePaiement" class="form-label">Payment Method</label>
+                                        <select class="form-select" id="modePaiement" name="mode_paiement">
+                                            <option value="">-- Select Payment Method --</option>
+                                            <option value="MENSUEL" {% if assurance and assurance.modePaiement == 'MENSUEL' %}selected{% endif %}>Monthly</option>
+                                            <option value="TRIMESTRIEL" {% if assurance and assurance.modePaiement == 'TRIMESTRIEL' %}selected{% endif %}>Quarterly</option>
+                                            <option value="SEMESTRIEL" {% if assurance and assurance.modePaiement == 'SEMESTRIEL' %}selected{% endif %}>Semi-Annual</option>
+                                            <option value="ANNUEL" {% if assurance and assurance.modePaiement == 'ANNUEL' %}selected{% endif %}>Annual</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6"></div>
+                                    <div class="col-md-6">
+                                        <label for="renouvellementAuto" class="form-label">Auto Renewal</label>
+                                        <select class="form-select" id="renouvellementAuto" name="renouvellement_auto">
+                                            <option value="0" {% if not assurance or not assurance.renouvellementAuto %}selected{% endif %}>Disabled</option>
+                                            <option value="1" {% if assurance and assurance.renouvellementAuto %}selected{% endif %}>Enabled</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Dates Section -->
+                            <div class="mb-4">
+                                <h5 class="card-title mb-3"><i class="fa fa-calendar me-2 text-warning"></i>Policy Dates</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="dateDebut" class="form-label">Start Date <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" id="dateDebut" name="date_debut" 
+                                            value="{{ assurance and assurance.dateDebut ? assurance.dateDebut|date('Y-m-d') : '' }}">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="dateEcheance" class="form-label">Expiry Date <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control" id="dateEcheance" name="date_echeance" 
+                                            value="{{ assurance and assurance.dateEcheance ? assurance.dateEcheance|date('Y-m-d') : '' }}">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Form Actions -->
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fa fa-save me-2"></i>{{ assurance ? 'Update Policy' : 'Create Policy' }}
+                                </button>
+                                <a href="{{ path('app_admin_assurances') }}" class="btn btn-secondary btn-lg">
+                                    <i class="fa fa-arrow-left me-2"></i>Cancel
+                                </a>
+                            </div>
+
+                            <p class="text-muted mt-4">
+                                <small><span class="text-danger">*</span> = Required field</small>
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Sidebar -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3"><i class="fa fa-lightbulb me-2 text-warning"></i>Tips</h6>
+                        <ul class="list-unstyled small">
+                            <li class="mb-2">
+                                <i class="fa fa-check text-success me-2"></i>
+                                <strong>Policy Number:</strong> Use unique identifiers like POL-001, POL-002
+                            </li>
+                            <li class="mb-2">
+                                <i class="fa fa-check text-success me-2"></i>
+                                <strong>Coverage Amount:</strong> This is the maximum payout for claims
+                            </li>
+                            <li class="mb-2">
+                                <i class="fa fa-check text-success me-2"></i>
+                                <strong>Deductible:</strong> Amount the policyholder pays out of pocket
+                            </li>
+                            <li class="mb-2">
+                                <i class="fa fa-check text-success me-2"></i>
+                                <strong>Premium:</strong> Cost for the policyholder
+                            </li>
+                            <li>
+                                <i class="fa fa-check text-success me-2"></i>
+                                <strong>Auto Renewal:</strong> Enable to auto-renew policies on expiry
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3"><i class="fa fa-shield-alt me-2 text-info"></i>Insurance Types</h6>
+                        <small class="text-muted">
+                            <ul class="list-unstyled mb-0">
+                                <li><strong>Health:</strong> Medical insurance</li>
+                                <li><strong>Life:</strong> Life insurance</li>
+                                <li><strong>Auto:</strong> Vehicle insurance</li>
+                                <li><strong>Home:</strong> Property insurance</li>
+                                <li><strong>Liability:</strong> Legal liability</li>
+                                <li><strong>School:</strong> Student insurance</li>
+                                <li><strong>Travel:</strong> Trip insurance</li>
+                                <li><strong>Professional:</strong> Business insurance</li>
+                            </ul>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Remboursement Details - PIDEV{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5 pb-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Remboursement Details</h1>
+                <a href="{{ path('app_remboursement_list') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Remboursement #{{ remboursement.getIdRemboursement() }}</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Status and Date -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Status</label>
+                            <div>
+                                {% set statusClass = remboursement.getStatut() == 'COMPLÈTE' ? 'success' : (remboursement.getStatut() == 'EN_ATTENTE' ? 'warning' : 'secondary') %}
+                                <span class="badge bg-{{ statusClass }} p-2">{{ remboursement.getStatut() }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Remboursement Date</label>
+                            <p>{{ remboursement.getDateRemboursement()|date('d/m/Y') }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Remboursement Information -->
+                    <hr>
+                    <h6 class="mb-3 font-weight-bold">Remboursement Information</h6>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Amount</label>
+                            <p class="lead text-primary">${{ remboursement.getMontant()|number_format(2, '.', ',') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Type</label>
+                            <p class="lead">{{ remboursement.getTypeRemboursement() }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Cashback Information -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Cashback Percentage</label>
+                            <p>
+                                {% if remboursement.getCashbackPourcentage() %}
+                                    {{ remboursement.getCashbackPourcentage() }}%
+                                {% else %}
+                                    <span class="text-muted">No cashback</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Cashback Earned</label>
+                            <p class="text-success font-weight-bold">
+                                {% if remboursement.getMontantCashback() %}
+                                    +${{ remboursement.getMontantCashback()|number_format(2, '.', ',') }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if remboursement.getDescription() %}
+                    <!-- Description -->
+                    <hr>
+                    <h6 class="mb-3 font-weight-bold">Description</h6>
+                    <p>{{ remboursement.getDescription() }}</p>
+                    {% endif %}
+
+                    {% if credit %}
+                    <!-- Related Credit -->
+                    <hr>
+                    <h6 class="mb-3 font-weight-bold">Related Credit</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Credit ID</label>
+                            <p>
+                                <a href="{{ path('app_credit_view', {id: credit.getIdCredit()}) }}" class="text-decoration-none">
+                                    Credit #{{ credit.getIdCredit() }}
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Credit Amount</label>
+                            <p>${{ credit.getMontantDemande()|number_format(2, '.', ',') }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Additional Details -->
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Created At</label>
+                            <p>{{ remboursement.getCreatedAt()|date('d/m/Y H:i') }}</p>
+                        </div>
+                        {% if remboursement.getReferenceId() %}
+                        <div class="col-md-6">
+                            <label class="text-muted small">Reference ID</label>
+                            <p>#{{ remboursement.getReferenceId() }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

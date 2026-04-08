@@ -1,0 +1,249 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Create New Credit - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1 class="mb-4">Create New Credit</h1>
+
+            {# PHP Server-Side Validation Errors #}
+            {% if errors is defined and errors|length > 0 %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle"></i> <strong>Please fix the following errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+
+            {# Flash Messages #}
+            {% if app.flashes %}
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Credit Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- User Selection -->
+                        <div class="mb-3">
+                            <label for="user_id" class="form-label">User *</label>
+                            <select class="form-select" id="user_id" name="user_id" onchange="updateUserBankAccounts()">
+                                <option value="">Select a user...</option>
+                                {% for user in users %}
+                                    <option value="{{ user.getId() }}">
+                                        {{ user.getPrenom() }} {{ user.getNom() }} ({{ user.getEmail() }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Amount -->
+                        <div class="mb-3">
+                            <label for="montant_demande" class="form-label">Amount $ *</label>
+                            <input type="number" class="form-control" id="montant_demande" name="montant_demande" 
+                                   placeholder="Enter amount" onchange="calculatePayment()">
+                            <small class="form-text text-muted">Between $100 and $100,000</small>
+                        </div>
+
+                        <!-- Credit Type -->
+                        <div class="mb-3">
+                            <label for="type_credit" class="form-label">Credit Type (Duration) *</label>
+                            <select class="form-select" id="type_credit" name="type_credit" onchange="calculatePayment()">
+                                <option value="">Select a credit type...</option>
+                                {% for type in creditTypes %}
+                                    <option value="{{ type }}">{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Interest Rate -->
+                        <div class="mb-3">
+                            <label for="taux_interet" class="form-label">Interest Rate (Annual %) *</label>
+                            <input type="number" class="form-control" id="taux_interet" name="taux_interet" 
+                                   value="5.5" onchange="calculatePayment()">
+                        </div>
+
+                        <!-- Bank Account -->
+                        <div class="mb-3">
+                            <label for="compte_id" class="form-label">Bank Account *</label>
+                            <select class="form-select" id="compte_id" name="compte_id">
+                                <option value="">Select a bank account...</option>
+                            </select>
+                            <small class="form-text text-muted">Select a user first</small>
+                        </div>
+
+                        <!-- Subscription Discount -->
+                        <div class="mb-3">
+                            <label for="abonnement_id" class="form-label">Subscription (for discount)</label>
+                            <select class="form-select" id="abonnement_id" name="abonnement_id" onchange="calculatePayment()">
+                                <option value="">No subscription</option>
+                                {% for abo in abonnements %}
+                                    <option value="{{ abo.getIdAbonnement() }}" data-discount="{{ abo.getReductionPourcentage() ?? 0 }}">
+                                        {{ abo.getTypeAbonnement() }} ({{ abo.getReductionPourcentage() ?? 0 }}% discount)
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Preview -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Payment Preview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Monthly Payment</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="preview_payment" readonly value="0.00">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Total Amount to Pay</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="preview_total" readonly value="0.00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Create Credit
+                    </button>
+                    <a href="{{ path('app_admin_credits') }}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+</style>
+
+<script>
+    // Fetch and populate bank accounts when user is selected
+    function updateUserBankAccounts() {
+        const userSelect = document.getElementById('user_id');
+        const compteSelect = document.getElementById('compte_id');
+        const userId = userSelect.value;
+
+        // Clear existing options
+        compteSelect.innerHTML = '<option value="">Select a bank account...</option>';
+
+        if (!userId) {
+            return;
+        }
+
+        // Fetch bank accounts for selected user
+        fetch(`{{ path('app_admin_api_user_bank_accounts', {userId: '__USER_ID__'}) }}`.replace('__USER_ID__', userId))
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    compteSelect.innerHTML = '<option value="">No active bank accounts found</option>';
+                    return;
+                }
+
+                data.forEach(account => {
+                    const option = document.createElement('option');
+                    option.value = account.id;
+                    option.textContent = `${account.type} - ${account.numero} (${account.solde} ${account.devise})`;
+                    compteSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching bank accounts:', error);
+                compteSelect.innerHTML = '<option value="">Error loading accounts</option>';
+            });
+    }
+
+    // Calculate monthly payment and total (for display only, no validation)
+    function calculatePayment() {
+        const montantDemande = parseFloat(document.getElementById('montant_demande').value) || 0;
+        const typeCredit = document.getElementById('type_credit').value;
+        let tauxInteret = parseFloat(document.getElementById('taux_interet').value) || 5.5;
+        const abonnementSelect = document.getElementById('abonnement_id');
+        const selectedOption = abonnementSelect.options[abonnementSelect.selectedIndex];
+        const discount = parseFloat(selectedOption.getAttribute('data-discount')) || 0;
+
+        if (!montantDemande || !typeCredit) {
+            document.getElementById('preview_payment').value = '0.00';
+            document.getElementById('preview_total').value = '0.00';
+            return;
+        }
+
+        // Apply discount if subscription selected
+        let tauxFinal = tauxInteret - discount;
+        if (tauxFinal < 0.5) {
+            tauxFinal = 0.5;
+        }
+
+        // Extract duration in months
+        const durationMonths = parseInt(typeCredit.replace('M', ''));
+
+        // Calculate monthly payment using standard loan formula
+        const monthlyRate = tauxFinal / 100 / 12;
+        let mensualite = 0;
+
+        if (monthlyRate > 0) {
+            const numerator = monthlyRate * Math.pow(1 + monthlyRate, durationMonths);
+            const denominator = Math.pow(1 + monthlyRate, durationMonths) - 1;
+            mensualite = denominator > 0 ? (montantDemande * (numerator / denominator)) : 0;
+        } else {
+            mensualite = montantDemande / durationMonths;
+        }
+
+        const montantTotal = mensualite * durationMonths;
+
+        document.getElementById('preview_payment').value = mensualite.toFixed(2);
+        document.getElementById('preview_total').value = montantTotal.toFixed(2);
+    }
+
+    // Calculate payment on page load if values are present
+    document.addEventListener('DOMContentLoaded', function() {
+        calculatePayment();
+    });
+</script>
+{% endblock %}

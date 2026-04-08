@@ -1,0 +1,162 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Manage Contracts - Admin - Credix{% endblock %}
+
+{% block breadcrumb_current %}Manage Contracts{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="display-6 mb-0">Manage Contracts</h1>
+                        <p class="text-muted">View and manage all insurance contracts</p>
+                    </div>
+                    <a href="{{ path('app_contract_new') }}" class="btn btn-primary">
+                        <i class="fa fa-plus me-2"></i>New Contract
+                    </a>
+                </div>
+            </div>
+        </div>
+
+            <!-- Filter Section -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <form method="GET" action="{{ path('app_admin_contracts') }}" class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Search</label>
+                            <input type="text" name="search" class="form-control" placeholder="Contract #..." value="{{ search }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="">All Status</option>
+                                <option value="ACCEPTED" {% if status == 'ACCEPTED' %}selected{% endif %}>Accepted</option>
+                                <option value="EN_ATTENTE" {% if status == 'EN_ATTENTE' %}selected{% endif %}>Pending</option>
+                                <option value="ACTIF" {% if status == 'ACTIF' %}selected{% endif %}>Active</option>
+                                <option value="EXPIRE" {% if status == 'EXPIRE' %}selected{% endif %}>Expired</option>
+                                <option value="RESILIE" {% if status == 'RESILIE' %}selected{% endif %}>Cancelled</option>
+                                <option value="SUSPENDU" {% if status == 'SUSPENDU' %}selected{% endif %}>Suspended</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Sort By</label>
+                            <select name="sort" class="form-select">
+                                <option value="id" {% if sort == 'id' %}selected{% endif %}>ID</option>
+                                <option value="numeroContrat" {% if sort == 'numeroContrat' %}selected{% endif %}>Contract #</option>
+                                <option value="dateSignature" {% if sort == 'dateSignature' %}selected{% endif %}>Signing Date</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex gap-2 align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fa fa-filter me-1"></i>Filter
+                            </button>
+                            <a href="{{ path('app_admin_contracts') }}" class="btn btn-secondary">
+                                <i class="fa fa-redo"></i>
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Contracts Table -->
+            <div class="card border-0 shadow-sm">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Contract #</th>
+                                <th>User</th>
+                                <th>Signing Date</th>
+                                <th>Expiration Date</th>
+                                <th>Duration</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if contracts|length > 0 %}
+                                {% for contract in contracts %}
+                                    <tr>
+                                        <td>
+                                            <small class="text-muted">#{{ contract.id }}</small>
+                                        </td>
+                                        <td>
+                                            <strong>{{ contract.numeroContrat }}</strong>
+                                        </td>
+                                        <td>
+                                            <small>{{ contract.utilisateur.prenom }} {{ contract.utilisateur.nom }}</small>
+                                        </td>
+                                        <td>
+                                            {% if contract.dateSignature %}
+                                                <small>{{ contract.dateSignature|date('m/d/Y') }}</small>
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if contract.dateFinContrat %}
+                                                <small>{{ contract.dateFinContrat|date('m/d/Y') }}</small>
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small>{{ contract.dureeContrat ?? 'N/A' }} months</small>
+                                        </td>
+                                        <td>
+                                            {% if contract.getStatut() == 'ACCEPTED' %}
+                                                <span class="badge bg-success">Accepted</span>
+                                            {% elseif contract.getStatut() == 'ACTIF' %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% elseif contract.getStatut() == 'EXPIRE' %}
+                                                <span class="badge bg-danger">Expired</span>
+                                            {% elseif contract.getStatut() == 'EN_ATTENTE' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elseif contract.getStatut() == 'RESILIE' %}
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ contract.getStatut() ?? 'N/A' }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{{ path('app_contract_show', {id: contract.id}) }}" class="btn btn-outline-info" title="View">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                                <a href="{{ path('app_admin_contract_edit', {id: contract.id}) }}" class="btn btn-outline-warning" title="Edit">
+                                                    <i class="fa fa-edit"></i>
+                                                </a>
+                                                {% if contract.getStatut() == 'EN_ATTENTE' or contract.getStatut() == 'ACTIF' %}
+                                                    <a href="{{ path('app_contract_accept', {id: contract.id}) }}" class="btn btn-outline-success" title="Accept Contract" onclick="return confirm('Accept this contract?')">
+                                                        <i class="fa fa-check"></i> Accept
+                                                    </a>
+                                                    <a href="{{ path('app_contract_deny', {id: contract.id}) }}" class="btn btn-outline-danger" title="Deny Contract" onclick="return confirm('Deny this contract?')">
+                                                        <i class="fa fa-times"></i> Deny
+                                                    </a>
+                                                {% elseif contract.getStatut() != 'ACCEPTED' and contract.getStatut() != 'RESILIE' %}
+                                                    <a href="{{ path('app_contract_delete', {id: contract.id}) }}" class="btn btn-outline-danger" title="Delete" onclick="return confirm('Are you sure?')">
+                                                        <i class="fa fa-trash"></i>
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="8" class="text-center text-muted py-4">
+                                        <i class="fa fa-inbox me-2"></i>No contracts found
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

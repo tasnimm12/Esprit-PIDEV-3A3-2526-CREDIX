@@ -1,0 +1,430 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Subscription Plans - Credix{% endblock %}
+
+{% block content %}
+<div class="subscriptions-container" style="margin-top: 150px;">
+    <!-- Header Section -->
+    <div class="subscriptions-header">
+        <div class="container-xxl">
+            <div class="row align-items-center mb-4">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-2" style="color: #1a3a52;">
+                        <i class="fa fa-gem me-3" style="color: #f39c12;"></i>Subscription Plans
+                    </h1>
+                    <p class="text-muted mb-0">Choose the perfect plan for your needs</p>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon total-subscribers">
+                            <i class="fa fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Total Plans</h6>
+                            <p class="stat-number">{{ abonnements|length }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon budget-friendly">
+                            <i class="fa fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Lowest Price</h6>
+                            <p class="stat-number">{% if abonnements|length > 0 %}${{ (abonnements|sort((a, b) => a.prixMensuel <=> b.prixMensuel))[0].prixMensuel|number_format(0) }}{% else %}0{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon premium-plans">
+                            <i class="fa fa-crown"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Highest Price</h6>
+                            <p class="stat-number">{% if abonnements|length > 0 %}${{ (abonnements|sort((a, b) => b.prixMensuel <=> a.prixMensuel))[0].prixMensuel|number_format(0) }}{% else %}0{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon my-plans">
+                            <i class="fa fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">My Subscriptions</h6>
+                            <p class="stat-number">{% if app.user %}{{ app.user.abonnements|length }}{% else %}0{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-xxl py-5">
+        <div class="container">
+
+            <!-- Search and Filter Section -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-4">
+                                <i class="fa fa-search me-2 text-primary"></i>Search & Filter Plans
+                            </h5>
+                            <form method="get" class="row g-3">
+                                <!-- Keyword Search -->
+                                <div class="col-md-4">
+                                    <label for="keyword" class="form-label">
+                                        <i class="fa fa-keyboard me-1"></i>Search by Name or Description
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control" 
+                                        id="keyword" 
+                                        name="keyword" 
+                                        placeholder="e.g., Basic, Premium, Gold..." 
+                                        value="{{ keyword }}"
+                                    >
+                                </div>
+
+                                <!-- Min Price Filter -->
+                                <div class="col-md-2">
+                                    <label for="minPrice" class="form-label">
+                                        <i class="fa fa-dollar-sign me-1"></i>Min Price
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="minPrice" 
+                                        name="minPrice" 
+                                        placeholder="0" 
+                                        value="{{ minPrice }}"
+                                    >
+                                </div>
+
+                                <!-- Max Price Filter -->
+                                <div class="col-md-2">
+                                    <label for="maxPrice" class="form-label">
+                                        <i class="fa fa-dollar-sign me-1"></i>Max Price
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="maxPrice" 
+                                        name="maxPrice" 
+                                        placeholder="999.99" 
+                                        value="{{ maxPrice }}"
+                                    >
+                                </div>
+
+                                <!-- Sort By -->
+                                <div class="col-md-2">
+                                    <label for="sort" class="form-label">
+                                        <i class="fa fa-sort me-1"></i>Sort By
+                                    </label>
+                                    <select class="form-select" id="sort" name="sort">
+                                        <option value="prix_mensuel" {% if sort == 'prix_mensuel' %}selected{% endif %}>Price</option>
+                                        <option value="type_abonnement" {% if sort == 'type_abonnement' %}selected{% endif %}>Name</option>
+                                        <option value="id" {% if sort == 'id' %}selected{% endif %}>Newest</option>
+                                    </select>
+                                </div>
+
+                                <!-- Sort Order -->
+                                <div class="col-md-2">
+                                    <label for="order" class="form-label">
+                                        <i class="fa fa-arrow-up-down me-1"></i>Order
+                                    </label>
+                                    <select class="form-select" id="order" name="order">
+                                        <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>Low to High</option>
+                                        <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>High to Low</option>
+                                    </select>
+                                </div>
+
+                                <!-- Search Button -->
+                                <div class="col-12">
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa fa-search me-2"></i>Search
+                                        </button>
+                                        {% if keyword or minPrice or maxPrice or sort != 'prix_mensuel' or order != 'ASC' %}
+                                            <a href="{{ path('app_abonnement_list') }}" class="btn btn-outline-secondary">
+                                                <i class="fa fa-times me-2"></i>Clear Filters
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Results Info -->
+            {% if keyword or minPrice or maxPrice or (sort is defined and sort != 'prix_mensuel') or (order is defined and order != 'ASC') %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fa fa-filter me-2"></i>
+                            <strong>Filtering Results:</strong>
+                            {% if keyword %}<span class="badge bg-primary ms-2">Keyword: {{ keyword }}</span>{% endif %}
+                            {% if minPrice %}<span class="badge bg-info ms-2">From ${{ minPrice }}/mo</span>{% endif %}
+                            {% if maxPrice %}<span class="badge bg-info ms-2">To ${{ maxPrice }}/mo</span>{% endif %}
+                            {% if sort is defined and sort != 'prix_mensuel' %}<span class="badge bg-secondary ms-2">Sort: {{ sort }}</span>{% endif %}
+                            <span class="badge bg-secondary ms-2">{{ abonnements|length }} result(s)</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="text-center text-muted mb-3">
+                            <small><i class="fa fa-info-circle me-1"></i>Showing {{ abonnements|length }} available plan(s)</small>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- My Current Subscriptions -->
+            {% if app.user and app.user.abonnements|length > 0 %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fa fa-info-circle me-2"></i>
+                            <strong>Active Subscriptions:</strong> You have <strong>{{ app.user.abonnements|length }}</strong> active plan(s).
+                            You can add more plans or manage your subscriptions.
+                            <a href="{{ path('app_my_subscription') }}" class="alert-link">View All Plans</a>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Subscription Plans -->
+            <div class="row g-4">
+                {% for abonnement in abonnements %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-0 subscription-card">
+                            <!-- Plan Header -->
+                            <div class="card-header bg-primary text-white py-3">
+                                <h5 class="mb-0">{{ abonnement.typeAbonnement }}</h5>
+                            </div>
+
+                            <!-- Card Body -->
+                            <div class="card-body">
+                                <!-- Price -->
+                                <div class="mb-4">
+                                    <div class="display-6 text-primary">
+                                        ${{ abonnement.prixMensuel|number_format(2) }}
+                                        <span class="fs-6 text-muted">/month</span>
+                                    </div>
+                                    <small class="text-muted">
+                                        or ${{ abonnement.prixAnnuel|number_format(2) }}/year
+                                    </small>
+                                </div>
+
+                                <!-- Description -->
+                                {% if abonnement.description %}
+                                    <p class="text-muted mb-3">
+                                        {{ abonnement.description }}
+                                    </p>
+                                {% endif %}
+
+                                <!-- Duration -->
+                                <p class="mb-3">
+                                    <strong>Duration:</strong> {{ abonnement.duree }}
+                                </p>
+
+                                <!-- Features -->
+                                {% if abonnement.avantages %}
+                                    <h6 class="mb-3">Features:</h6>
+                                    <ul class="list-unstyled">
+                                        {% for avantage in abonnement.avantages|split('\n') %}
+                                            {% if avantage|trim %}
+                                                <li class="mb-2">
+                                                    <i class="fa fa-check text-success me-2"></i>
+                                                    {{ avantage|trim }}
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+
+                            <!-- Card Footer -->
+                            <div class="card-footer bg-light">
+                                <div class="d-grid gap-2">
+                                    {% if app.user and app.user.abonnements|length > 0 and app.user.abonnements.contains(abonnement) %}
+                                        <div class="d-flex gap-2">
+                                            <span class="badge bg-success flex-grow-1 text-center py-2">
+                                                <i class="fa fa-check me-2"></i>Active Plan
+                                            </span>
+                                            <a href="{{ path('app_abonnement_unsubscribe', {id: abonnement.idAbonnement}) }}" 
+                                               class="btn btn-sm btn-danger"
+                                               title="Remove subscription"
+                                               onclick="return confirm('Remove this subscription?')">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    {% elseif app.user and balanceInfoByPlan[abonnement.idAbonnement] %}
+                                        {% set balance = balanceInfoByPlan[abonnement.idAbonnement] %}
+                                        {% if not balance.hasBankAccount %}
+                                            <div class="alert alert-danger mb-2 p-2">
+                                                <small>
+                                                    <i class="fa fa-exclamation-circle me-1"></i>
+                                                    No bank account
+                                                </small>
+                                            </div>
+                                            <button class="btn btn-secondary btn-sm" disabled>
+                                                Add Plan
+                                            </button>
+                                        {% elseif not (balance.canAffordMonthly or balance.canAffordAnnual) %}
+                                            <div class="alert alert-danger mb-2 p-2">
+                                                <small>
+                                                    <i class="fa fa-exclamation-circle me-1"></i>
+                                                    Insufficient balance (${{'%.2f'|format(balance.totalBalance)}})
+                                                </small>
+                                            </div>
+                                            <button class="btn btn-secondary btn-sm" disabled>
+                                                Add Plan (Locked)
+                                            </button>
+                                        {% else %}
+                                            <a href="{{ path('app_abonnement_subscribe', {id: abonnement.idAbonnement}) }}" 
+                                               class="btn btn-primary">
+                                                Add Plan
+                                            </a>
+                                            <a href="{{ path('app_abonnement_detail', {id: abonnement.idAbonnement}) }}" 
+                                               class="btn btn-outline-secondary btn-sm">
+                                                View Details
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        <a href="{{ path('app_abonnement_subscribe', {id: abonnement.idAbonnement}) }}" 
+                                           class="btn btn-primary">
+                                            Add Plan
+                                        </a>
+                                        <a href="{{ path('app_abonnement_detail', {id: abonnement.idAbonnement}) }}" 
+                                           class="btn btn-outline-secondary btn-sm">
+                                            View Details
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- No Plans Available -->
+            {% if abonnements|length == 0 %}
+                <div class="row">
+                    <div class="col-12">
+                        {% if keyword or minPrice or maxPrice %}
+                            <div class="alert alert-warning text-center" role="alert">
+                                <i class="fa fa-search me-2"></i>
+                                <strong>No plans found</strong> matching your search criteria.
+                                <br>
+                                <small>Try adjusting your filters or <a href="{{ path('app_abonnement_list') }}" class="alert-link">view all plans</a></small>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning text-center" role="alert">
+                                <i class="fa fa-exclamation-triangle me-2"></i>
+                                No subscription plans available at the moment.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .subscriptions-container {
+        background: linear-gradient(135deg, #fff8e7 0%, #ffe8cc 100%);
+        min-height: 100vh;
+    }
+
+    .subscriptions-header {
+        background: white;
+        padding: 40px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Statistics Cards */
+    .stat-card {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 24px;
+    }
+
+    .stat-icon.total-subscribers {
+        background: #c8f1d8;
+        color: #27ae60;
+    }
+
+    .stat-icon.budget-friendly {
+        background: #ffeaa7;
+        color: #f39c12;
+    }
+
+    .stat-icon.premium-plans {
+        background: #dfe6e9;
+        color: #2c3e50;
+    }
+
+    .stat-icon.my-plans {
+        background: #b8def8;
+        color: #3498db;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1a3a52;
+        margin: 0;
+    }
+
+    .subscription-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .subscription-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .card-header:first-child {
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    }
+</style>
+
+{% endblock %}

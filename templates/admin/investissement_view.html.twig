@@ -1,0 +1,224 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Investment Details - Admin - Credix{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <a href="{{ path('app_admin_investissements') }}" class="btn btn-outline-secondary mb-3">
+                <i class="fas fa-arrow-left"></i> Back to Investments
+            </a>
+            <h1 class="mb-0">Investment Details</h1>
+        </div>
+    </div>
+
+    {% if app.flashes %}
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ type == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                    {% if type == 'error' %}<i class="fas fa-exclamation-circle me-2"></i>{% else %}<i class="fas fa-check-circle me-2"></i>{% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Investment Information -->
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Investment Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Investment ID</p>
+                            <p class="mb-3"><strong>#{{ investissement.getIdinves() }}</strong></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Date</p>
+                            <p class="mb-3"><strong>{{ investissement.getDateinves()|date('d/m/Y H:i') }}</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Amount Invested</p>
+                            <p class="mb-3"><strong class="text-primary fs-5">{{ investissement.getMontantinvesti()|number_format(2, '.', ',') }} D.T</strong></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Status</p>
+                            <p class="mb-3">
+                                <span class="badge bg-{% if investissement.getStatutInvestissement() == 'EN_ATTENTE' %}warning{% elseif investissement.getStatutInvestissement() == 'ACCEPTE' %}success{% elseif investissement.getStatutInvestissement() == 'REJETE' %}danger{% else %}secondary{% endif %} fs-6">
+                                    {{ investissement.getStatutInvestissement() }}
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Payment Method</p>
+                            <p class="mb-3"><strong>{{ investissement.getModepaiement() }}</strong></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Bank Account Number</p>
+                            <p class="mb-3">
+                                {% if investissement.getCompte() %}
+                                    <strong>{{ investissement.getCompte().getNumeroCompte() }}</strong>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Related Project</h5>
+                </div>
+                <div class="card-body">
+                    {% set projet = investissement.getProjet() %}
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Project Name</p>
+                            <p class="mb-3">
+                                <strong>
+                                    <a href="{{ path('app_projet_view', {id: projet.getIdprojet()}) }}" target="_blank">
+                                        {{ projet.getNomprojet() }} <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                </strong>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Sector</p>
+                            <p class="mb-3"><strong>{{ projet.getSecteur() }}</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Target Amount</p>
+                            <p class="mb-3"><strong>{{ projet.getMontantObjectif()|number_format(2, '.', ',') }} D.T</strong></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1">Amount Collected</p>
+                            <p class="mb-3"><strong>{{ projet.getMontantCollecte()|number_format(2, '.', ',') }} D.T</strong></p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <p class="text-muted mb-2">Progress</p>
+                            <div class="progress" style="height: 25px;">
+                                {% set progress = (projet.getMontantCollecte() / projet.getMontantObjectif() * 100) %}
+                                {% set percentProgress = (progress > 100) ? 100 : progress %}
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ percentProgress }}%;" 
+                                     aria-valuenow="{{ percentProgress }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ percentProgress|round(1) }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Investor/User Information -->
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Investor Information</h5>
+                </div>
+                <div class="card-body">
+                    {% set user = investissement.getUtilisateur() %}
+                    {% if user %}
+                        <div class="text-center mb-4">
+                            <div class="mb-3">
+                                <i class="fas fa-user-circle fa-4x text-primary"></i>
+                            </div>
+                            <h6>{{ user.getPrenom() }} {{ user.getNom() }}</h6>
+                            <p class="text-muted small">{{ user.getEmail() }}</p>
+                        </div>
+
+                        <hr>
+
+                        <p class="text-muted mb-1">Phone</p>
+                        <p class="mb-3"><strong>{{ user.getTelephone()|default('N/A') }}</strong></p>
+
+                        <p class="text-muted mb-1">Birth Date</p>
+                        <p class="mb-3">
+                            <strong>{{ user.getDateNaissance()|date('d/m/Y')|default('N/A') }}</strong>
+                        </p>
+
+                        <hr>
+
+                        <a href="mailto:{{ user.getEmail() }}" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="fas fa-envelope"></i> Send Email
+                        </a>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> No user information available
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Actions -->
+            {% if investissement.getStatutInvestissement() == 'EN_ATTENTE' %}
+                <div class="card shadow-sm border-warning">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Action Required</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-warning mb-3">
+                            <i class="fas fa-clock"></i> This investment is pending approval.
+                        </p>
+
+                        <form method="post" action="{{ path('app_admin_investissement_accept', {id: investissement.getIdinves()}) }}" class="mb-2">
+                            <button type="submit" class="btn btn-success w-100 mb-2">
+                                <i class="fas fa-check"></i> Accept Investment
+                            </button>
+                        </form>
+
+                        <form method="post" action="{{ path('app_admin_investissement_reject', {id: investissement.getIdinves()}) }}">
+                            <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Are you sure you want to reject this investment? The amount will be refunded.');">
+                                <i class="fas fa-times"></i> Reject Investment
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% elseif investissement.getStatutInvestissement() == 'ACCEPTE' %}
+                <div class="card shadow-sm border-success">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-success mb-0">
+                            <i class="fas fa-check-circle"></i> This investment has been accepted.
+                        </p>
+                    </div>
+                </div>
+            {% elseif investissement.getStatutInvestissement() == 'REJETE' %}
+                <div class="card shadow-sm border-danger">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-danger mb-0">
+                            <i class="fas fa-times-circle"></i> This investment has been rejected and the amount has been refunded.
+                        </p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

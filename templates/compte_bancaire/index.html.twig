@@ -1,0 +1,293 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes Comptes Bancaires{% endblock %}
+
+{% block content %}
+<div class="accounts-container" style="margin-top: 150px;">
+    <!-- Header Section -->
+    <div class="accounts-header">
+        <div class="container-xxl">
+            <div class="row align-items-center mb-4">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-2" style="color: #1a3a52;">
+                        <i class="fa fa-university me-3" style="color: #9b59b6;"></i>Mes Comptes Bancaires
+                    </h1>
+                    <p class="text-muted mb-0">Gérez et consultez tous vos comptes bancaires</p>
+                </div>
+                <div class="col-lg-4 text-end">
+                    <a href="{{ path('app_compte_bancaire_new') }}" class="btn btn-lg" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); color: white; border: none; box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);">
+                        <i class="fa fa-plus me-2"></i>Ajouter un Compte
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon active-accounts">
+                            <i class="fa fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Active</h6>
+                            <p class="stat-number">{{ comptes|filter(c => c.getActif)|length }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon inactive-accounts">
+                            <i class="fa fa-times-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Inactive</h6>
+                            <p class="stat-number">{{ comptes|filter(c => not c.getActif)|length }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon total-balance">
+                            <i class="fa fa-wallet"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Total Balance</h6>
+                            <p class="stat-number">${{ comptes|reduce((carry, item) => carry + (item.getSolde ?? 0), 0)|number_format(0, '.', ',') }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon total-accounts">
+                            <i class="fa fa-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Total Accounts</h6>
+                            <p class="stat-number">{{ comptes|length }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-xxl py-5">
+        <div class="container">
+
+            <!-- Accounts List -->
+            {% if comptes|length > 0 %}
+                <div class="row g-4">
+                    {% for compte in comptes %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="account-card shadow-lg border-0">
+                                <div class="account-card-header">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h5 class="account-id">
+                                            <i class="fa fa-building me-2"></i>{{ compte.typeCompte }}
+                                        </h5>
+                                        {% if compte.getActif %}
+                                            <span class="badge badge-lg bg-success" style="font-size: 0.75rem;">Active</span>
+                                        {% else %}
+                                            <span class="badge badge-lg bg-warning text-dark" style="font-size: 0.75rem;">Inactive</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="card-body">
+
+                                    <div class="account-info-block">
+                                        <div class="account-info">
+                                            <label class="account-label">
+                                                <i class="fa fa-tag"></i> Numéro de Compte
+                                            </label>
+                                            <p class="account-value">{{ compte.getNumeroCompte }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="account-info">
+                                                <label class="account-label">
+                                                    <i class="fa fa-user"></i> Titulaire
+                                                </label>
+                                                <p class="account-value">{{ compte.getTitulaire }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="account-info">
+                                                <label class="account-label">
+                                                    <i class="fa fa-dollar-sign"></i> Solde
+                                                </label>
+                                                <p class="account-value" style="color: #9b59b6; font-weight: bold;">${{ compte.getSolde|number_format(2) }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="account-info-block mt-2 pt-2 border-top">
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <label class="account-label">
+                                                    <i class="fa fa-envelope"></i> Email
+                                                </label>
+                                                <p class="account-value">{{ compte.getEmail|default('N/A') }}</p>
+                                            </div>
+                                            <div class="col-6">
+                                                <label class="account-label">
+                                                    <i class="fa fa-phone"></i> Téléphone
+                                                </label>
+                                                <p class="account-value">{{ compte.getTelephone|default('N/A') }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer bg-white border-top">
+                                    <div class="d-grid gap-2">
+                                        <a href="{{ path('app_compte_bancaire_show', {id: compte.getId}) }}" class="btn btn-primary btn-sm">
+                                            <i class="fa fa-eye me-1"></i>Détails
+                                        </a>
+                                    </div>
+                                    <div class="d-flex gap-2 mt-2">
+                                        <a href="{{ path('app_compte_bancaire_edit', {id: compte.getId}) }}" class="btn btn-sm btn-outline-warning flex-grow-1" title="Edit">
+                                            <i class="fa fa-edit me-1"></i>Modifier
+                                        </a>
+                                        <a href="{{ path('app_compte_bancaire_delete', {id: compte.getId}) }}" class="btn btn-sm btn-outline-danger flex-grow-1" onclick="return confirm('Êtes-vous sûr?')" title="Delete">
+                                            <i class="fa fa-trash me-1"></i>Supprimer
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="col-12 text-center text-muted py-5">
+                    Vous n'avez pas encore de compte bancaire.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .accounts-container {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e8d5f2 100%);
+        min-height: 100vh;
+    }
+
+    .accounts-header {
+        background: white;
+        padding: 40px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Statistics Cards */
+    .stat-card {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 24px;
+    }
+
+    .stat-icon.active-accounts {
+        background: #d4edda;
+        color: #28a745;
+    }
+
+    .stat-icon.inactive-accounts {
+        background: #f8d7da;
+        color: #dc3545;
+    }
+
+    .stat-icon.total-balance {
+        background: #e2d5f1;
+        color: #9b59b6;
+    }
+
+    .stat-icon.total-accounts {
+        background: #d1ecf1;
+        color: #17a2b8;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1a3a52;
+        margin: 0;
+    }
+
+    /* Account Cards */
+    .account-card {
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .account-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .account-card-header {
+        background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        color: white;
+        padding: 20px;
+    }
+
+    .account-id {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+        color: white;
+    }
+
+    .account-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #7f8fa3;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+
+    .account-value {
+        font-size: 16px;
+        font-weight: 500;
+        color: #1a3a52;
+        margin: 5px 0 0 0;
+    }
+
+    .badge-lg {
+        padding: 0.5rem 0.75rem;
+        font-weight: 600;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        border: none;
+        box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%);
+        box-shadow: 0 6px 16px rgba(155, 89, 182, 0.4);
+    }
+</style>
+
+{% endblock %}

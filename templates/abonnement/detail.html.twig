@@ -1,0 +1,196 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ abonnement.typeAbonnement }} - Credix{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <!-- Back Link -->
+            <div class="mb-4">
+                <a href="{{ path('app_abonnements') }}" class="text-decoration-none">
+                    <i class="fa fa-arrow-left me-2"></i>Back to Plans
+                </a>
+            </div>
+
+            <div class="row">
+                <!-- Plan Details -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-primary text-white py-4">
+                            <h1 class="h3 mb-0">{{ abonnement.typeAbonnement }}</h1>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <!-- Price Section -->
+                            <div class="mb-4 pb-4 border-bottom">
+                                <h5 class="mb-3">Pricing</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="pricing-box">
+                                            <p class="text-muted small mb-1">Monthly</p>
+                                            <p class="display-5 text-primary mb-0">
+                                                ${{ abonnement.prixMensuel|number_format(2) }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="pricing-box">
+                                            <p class="text-muted small mb-1">Annual</p>
+                                            <p class="display-5 text-primary mb-0">
+                                                ${{ abonnement.prixAnnuel|number_format(2) }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Description -->
+                            {% if abonnement.description %}
+                                <div class="mb-4 pb-4 border-bottom">
+                                    <h5 class="mb-3">Description</h5>
+                                    <p class="text-muted">{{ abonnement.description }}</p>
+                                </div>
+                            {% endif %}
+
+                            <!-- Duration -->
+                            <div class="mb-4 pb-4 border-bottom">
+                                <h5 class="mb-3">Subscription Duration</h5>
+                                <p class="mb-0">{{ abonnement.duree }}</p>
+                            </div>
+
+                            <!-- Features -->
+                            {% if abonnement.avantages %}
+                                <div class="mb-4">
+                                    <h5 class="mb-3">Included Features</h5>
+                                    <ul class="list-unstyled">
+                                        {% for avantage in abonnement.avantages|split('\n') %}
+                                            {% if avantage|trim %}
+                                                <li class="mb-3">
+                                                    <i class="fa fa-check-circle text-success me-3"></i>
+                                                    <span>{{ avantage|trim }}</span>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-4">Summary</h5>
+
+                            <!-- Current Status -->
+                            {% if app.user %}
+                                {% if app.user.abonnements|length > 0 and app.user.abonnements.contains(abonnement) %}
+                                    <div class="alert alert-success mb-3">
+                                        <i class="fa fa-check me-2"></i>
+                                        <strong>Active Subscription</strong>
+                                    </div>
+                                    <a href="{{ path('app_abonnement_unsubscribe', {id: abonnement.idAbonnement}) }}" 
+                                       class="btn btn-danger w-100 mb-2"
+                                       onclick="return confirm('Remove this subscription?')">
+                                        <i class="fa fa-times me-2"></i>Remove Subscription
+                                    </a>
+                                    <a href="{{ path('app_my_subscription') }}" class="btn btn-outline-primary w-100 mt-2">
+                                        View All Plans
+                                    </a>
+                                {% else %}
+                                    {% if app.user.abonnements|length > 0 %}
+                                        <div class="alert alert-info small mb-3">
+                                            <i class="fa fa-info-circle me-2"></i>
+                                            <strong>You have {{ app.user.abonnements|length }} active plan(s)</strong>
+                                        </div>
+                                    {% endif %}
+
+                                    <!-- Balance Check Alert -->
+                                    {% if balanceInfo %}
+                                        {% if not balanceInfo.hasBankAccount %}
+                                            <div class="alert alert-danger mb-3">
+                                                <i class="fa fa-exclamation-circle me-2"></i>
+                                                <strong>No Bank Account</strong>
+                                                <p class="mb-2 small mt-2">You need to add a bank account to subscribe to this plan.</p>
+                                                <a href="{{ path('app_compte_bancaire_new') }}" class="alert-link">
+                                                    <i class="fa fa-plus me-1"></i>Add Bank Account
+                                                </a>
+                                            </div>
+                                            <button class="btn btn-secondary w-100" disabled>
+                                                <i class="fa fa-lock me-2"></i>Cannot Subscribe
+                                            </button>
+                                        {% elseif not (balanceInfo.canAffordMonthly or balanceInfo.canAffordAnnual) %}
+                                            <div class="alert alert-danger mb-3">
+                                                <i class="fa fa-exclamation-circle me-2"></i>
+                                                <strong>Insufficient Balance</strong>
+                                                <p class="mb-2 small mt-2">
+                                                    Your balance: ${{ balanceInfo.totalBalance|number_format(2) }}<br>
+                                                    Monthly price: ${{ balanceInfo.prixMensuel|number_format(2) }}<br>
+                                                    Annual price: ${{ balanceInfo.prixAnnuel|number_format(2) }}
+                                                </p>
+                                                <a href="{{ path('app_compte_bancaire_index') }}" class="alert-link small">
+                                                    <i class="fa fa-wallet me-1"></i>Check Bank Accounts
+                                                </a>
+                                            </div>
+                                            <button class="btn btn-secondary w-100" disabled>
+                                                <i class="fa fa-lock me-2"></i>Insufficient Funds
+                                            </button>
+                                        {% else %}
+                                            <a href="{{ path('app_abonnement_subscribe', {id: abonnement.idAbonnement}) }}" 
+                                               class="btn btn-primary w-100">
+                                                <i class="fa fa-plus me-2"></i>Add This Plan
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        <a href="{{ path('app_abonnement_subscribe', {id: abonnement.idAbonnement}) }}" 
+                                           class="btn btn-primary w-100">
+                                            <i class="fa fa-plus me-2"></i>Add This Plan
+                                        </a>
+                                    {% endif %}
+
+                                    <a href="{{ path('app_my_subscription') }}" class="btn btn-outline-secondary w-100 mt-2">
+                                        View My Subscriptions
+                                    </a>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-warning mb-3">
+                                    <small>You must be logged in to subscribe</small>
+                                </div>
+                                <a href="{{ path('app_login') }}" class="btn btn-primary w-100">
+                                    Sign In to Subscribe
+                                </a>
+                            {% endif %}
+
+                            <!-- Quick Facts -->
+                            <div class="mt-4 pt-4 border-top">
+                                <h6 class="mb-3">Quick Facts</h6>
+                                <ul class="list-unstyled small text-muted">
+                                    <li class="mb-2">
+                                        <strong>Plan Type:</strong> {{ abonnement.nomAbonnement }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <strong>Monthly Cost:</strong> ${{ abonnement.prixMensuel|number_format(2) }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <strong>Annual Cost:</strong> ${{ abonnement.prixAnnuel|number_format(2) }}
+                                    </li>
+                                    <li class="mb-2">
+                                        <strong>Duration:</strong> {{ abonnement.duree }}
+                                    </li>
+                                    <li>
+                                        <strong>Status:</strong>
+                                        <span class="badge {% if abonnement.isActif %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {% if abonnement.isActif %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

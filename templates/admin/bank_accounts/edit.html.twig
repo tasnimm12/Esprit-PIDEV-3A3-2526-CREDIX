@@ -1,0 +1,186 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Edit Bank Account - Admin{% endblock %}
+
+{% block breadcrumb_current %}Edit Bank Account{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-3">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-0">
+                <i class="bi bi-bank2"></i> Edit Bank Account
+            </h2>
+            <small class="text-muted">Account: {{ bankAccount.titulaire }} (****{{ bankAccount.numeroCompte|slice(-4) }})</small>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    {# Validation Errors #}
+                    {% if errors|length > 0 %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-circle"></i> <strong>Please fix the following errors:</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for error in errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
+
+                    <form method="POST" class="needs-validation">
+                        {# User Selection #}
+                        <div class="mb-3">
+                            <label for="userId" class="form-label">User <span class="text-danger">*</span></label>
+                            <select class="form-select" id="userId" name="user_id">
+                                {% for user in users %}
+                                    <option value="{{ user.id }}" {% if user.id == bankAccount.utilisateur.id %}selected{% endif %}>
+                                        {{ user.prenom }} {{ user.nom }} ({{ user.email }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">The user who owns this bank account</small>
+                        </div>
+
+                        <hr>
+
+                        {# Account Details #}
+                        <h5 class="mb-3"><i class="bi bi-info-circle"></i> Account Details</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="numeroCompte" class="form-label">Account Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="numeroCompte" name="numero_compte"
+                                       value="{{ bankAccount.numeroCompte }}">
+                                <small class="form-text text-muted">Unique account number</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="titulaire" class="form-label">Account Holder <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="titulaire" name="titulaire"
+                                       value="{{ bankAccount.titulaire }}">
+                                <small class="form-text text-muted">Name on the account</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       value="{{ bankAccount.email }}">
+                                <small class="form-text text-muted">Contact email for this account</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="telephone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="telephone" name="telephone"
+                                       value="{{ bankAccount.telephone }}">
+                                <small class="form-text text-muted">Optional phone number</small>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        {# Financial Details #}
+                        <h5 class="mb-3"><i class="bi bi-cash-coin"></i> Financial Details</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="solde" class="form-label">Balance <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="solde" name="solde" 
+                                       value="{{ bankAccount.solde }}">
+                                <small class="form-text text-muted">Current account balance</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="devise" class="form-label">Currency <span class="text-danger">*</span></label>
+                                <select class="form-select" id="devise" name="devise">
+                                    <option value="USD" {% if bankAccount.devise == 'USD' %}selected{% endif %}>USD ($)</option>
+                                    <option value="EUR" {% if bankAccount.devise == 'EUR' %}selected{% endif %}>EUR (€)</option>
+                                    <option value="GBP" {% if bankAccount.devise == 'GBP' %}selected{% endif %}>GBP (£)</option>
+                                    <option value="TND" {% if bankAccount.devise == 'TND' %}selected{% endif %}>TND (د.ت)</option>
+                                </select>
+                                <small class="form-text text-muted">Currency of this account</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="typeCompte" class="form-label">Account Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="typeCompte" name="type_compte">
+                                <option value="Checking" {% if bankAccount.typeCompte == 'Checking' %}selected{% endif %}>Checking</option>
+                                <option value="Savings" {% if bankAccount.typeCompte == 'Savings' %}selected{% endif %}>Savings</option>
+                                <option value="Money Market" {% if bankAccount.typeCompte == 'Money Market' %}selected{% endif %}>Money Market</option>
+                                <option value="Investment" {% if bankAccount.typeCompte == 'Investment' %}selected{% endif %}>Investment</option>
+                                <option value="Business" {% if bankAccount.typeCompte == 'Business' %}selected{% endif %}>Business</option>
+                                <option value="Other" {% if bankAccount.typeCompte == 'Other' %}selected{% endif %}>Other</option>
+                            </select>
+                            <small class="form-text text-muted">Type of bank account</small>
+                        </div>
+
+                        <hr>
+
+                        {# Status #}
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="actif" name="actif" value="1"
+                                       {% if bankAccount.actif %}checked{% endif %}>
+                                <label class="form-check-label" for="actif">
+                                    Active Account
+                                </label>
+                            </div>
+                            <small class="form-text text-muted">Uncheck to deactivate this account</small>
+                        </div>
+
+                        <hr class="my-4">
+
+                        {# Buttons #}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Update Account
+                            </button>
+                            <a href="{{ path('app_admin_bank_accounts') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-info-circle"></i> Account Info</h5>
+                    <ul class="small mb-0">
+                        <li><strong>Created:</strong> {% if bankAccount.dateCreation %}{{ bankAccount.dateCreation|date('M d, Y') }}{% else %}N/A{% endif %}</li>
+                        <li><strong>User:</strong> {{ bankAccount.utilisateur.prenom }} {{ bankAccount.utilisateur.nom }}</li>
+                        <li><strong>Status:</strong> {% if bankAccount.actif %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm bg-danger-light mt-3">
+                <div class="card-body">
+                    <h5 class="card-title text-danger"><i class="bi bi-exclamation-triangle"></i> Danger Zone</h5>
+                    <p class="small mb-2">Delete this bank account permanently.</p>
+                    <a href="{{ path('app_admin_bank_account_delete', {id: bankAccount.id}) }}" 
+                       class="btn btn-sm btn-danger w-100"
+                       onclick="return confirm('Are you sure? This action cannot be undone.');">
+                        <i class="bi bi-trash"></i> Delete Account
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-danger-light {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+</style>
+{% endblock %}

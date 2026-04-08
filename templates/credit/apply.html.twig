@@ -1,0 +1,225 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Apply for Credit - PIDEV{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5 pb-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2 px-3 px-md-4">
+            <h1 class="mb-4">Apply for Credit</h1>
+
+            {# PHP Server-Side Validation Errors #}
+            {% if errors is defined and errors|length > 0 %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-circle"></i> <strong>Please fix the following errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endif %}
+
+            {# Flash Messages (Success/Info) #}
+            {% if app.flashes %}
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+
+            {% if noBankAccountError is defined and noBankAccountError %}
+                <div class="alert alert-danger alert-dismissible fade show border-3" role="alert" style="border-left: 4px solid #dc3545;">
+                    <div class="d-flex align-items-start">
+                        <i class="fa fa-exclamation-circle fa-2x me-3 mt-1 text-danger"></i>
+                        <div class="flex-grow-1">
+                            <h4 class="alert-heading">No Active Bank Account Found</h4>
+                            <p class="mb-2">{{ noBankAccountError }}</p>
+                            <p class="mb-0">
+                                <strong>What to do:</strong> Please add and activate a bank account first to proceed with your credit application.
+                            </p>
+                        </div>
+                    </div>
+                    <hr class="my-3">
+                    <div class="d-flex gap-2">
+                        <a href="{{ path('app_compte_bancaire_new') }}" class="btn btn-primary">
+                            <i class="fa fa-plus me-2"></i>Add Bank Account
+                        </a>
+                        <a href="{{ path('app_compte_bancaire_index') }}" class="btn btn-outline-primary">
+                            <i class="fa fa-list me-2"></i>View My Accounts
+                        </a>
+                    </div>
+                </div>
+            {% elseif (bankAccounts is not defined or bankAccounts|length == 0) %}
+                <div class="alert alert-warning alert-dismissible fade show border-3" role="alert" style="border-left: 4px solid #ffc107;">
+                    <div class="d-flex align-items-start">
+                        <i class="fa fa-info-circle fa-2x me-3 mt-1 text-warning"></i>
+                        <div class="flex-grow-1">
+                            <h4 class="alert-heading">No Bank Accounts Available</h4>
+                            <p class="mb-0">You need to create and activate at least one bank account to apply for credit.</p>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+
+            {% if abonnements|length > 1 %}
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <strong>Multiple Subscriptions Available!</strong> You have {{ abonnements|length }} active subscriptions. Choose which one to use for this credit application to get the best discount.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% elseif abonnement %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <strong>Great News!</strong> You have an active subscription: <strong>{{ abonnement.getTypeAbonnement() }}</strong>
+                    <br>You qualify for a <strong>{{ reduction }}%</strong> discount on your credit interest rate!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% else %}
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <strong>Tip:</strong> Having an active subscription can get you a discount on your interest rate!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <!-- Amount -->
+                        <div class="mb-3">
+                            <label for="montant_demande" class="form-label">Amount to Borrow $ <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="montant_demande" name="montant_demande" placeholder="Enter amount between 100 and 100,000" value="">
+                            <small class="form-text text-muted">Between $100 and $100,000</small>
+
+                        </div>
+
+                        <!-- Credit Type -->
+                        <div class="mb-3">
+                            <label for="type_credit" class="form-label">Credit Duration <span class="text-danger">*</span></label>
+                            <select class="form-select" id="type_credit" name="type_credit">
+                                <option value="">-- Select a credit duration --</option>
+                                {% for type in creditTypes %}
+                                    <option value="{{ type }}">{{ type }}</option>
+                                {% endfor %}
+                            </select>
+
+                        </div>
+
+                        <!-- Interest Rate -->
+                        <div class="mb-3">
+                            <label for="taux_interet" class="form-label">Interest Rate (Annual %) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="taux_interet" name="taux_interet" placeholder="Annual interest rate" value="5.5">
+                            <small class="form-text text-muted">Standard rate: 5.5% (may be reduced with subscription discount)</small>
+                            <div id="discount_info_original" class="alert alert-info mt-2">
+                                {% if reduction > 0 %}
+                                    <i class="fas fa-tag"></i> Your subscription gives you <strong>{{ reduction }}%</strong> discount!
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Bank Account -->
+                        <div class="mb-3">
+                            <label for="compte_id" class="form-label">Bank Account <span class="text-danger">*</span></label>
+                            <select class="form-select" id="compte_id" name="compte_id">
+                                <option value="">-- Select your bank account --</option>
+                                {% for compte in bankAccounts %}
+                                    <option value="{{ compte.getId() }}">
+                                        {{ compte.getTypeCompte() }} - {{ compte.getNumeroCompte() }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+
+                        </div>
+
+                        <!-- Subscription Selection (if user has multiple abonnements) -->
+                        {% if abonnements|length > 0 %}
+                        <div class="mb-3">
+                            <label for="selected_abonnement" class="form-label">
+                                {% if abonnements|length > 1 %}
+                                    Select Subscription ({{ abonnements|length }} available)
+                                {% else %}
+                                    Subscription
+                                {% endif %}
+                            </label>
+                            <select class="form-select" id="selected_abonnement" name="selected_abonnement">
+                                <option value="">No subscription (Standard rate)</option>
+                                {% for abb in abonnements %}
+                                    <option value="{{ abb.getIdAbonnement() }}" data-reduction="{{ abb.getReductionPourcentage() ?? 0 }}" data-name="{{ abb.getTypeAbonnement() }}">
+                                        {{ abb.getTypeAbonnement() }} 
+                                        {% if abb.getReductionPourcentage() %}
+                                            - {{ abb.getReductionPourcentage() }}% Discount
+                                        {% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Select which subscription to use for this credit application</small>
+                            <div id="discount_info" class="alert alert-info mt-2" style="display: none;">
+                                <i class="fas fa-tag"></i> You'll get <strong id="discount_value">0%</strong> discount on interest rate with <strong id="abonnement_name">this plan</strong>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Monthly Payment Preview -->
+                        <div class="mb-3">
+                            <label class="form-label">Monthly Payment Preview</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="preview_payment" readonly value="0.00">
+                                <span class="input-group-text">/month</span>
+                            </div>
+                            <small class="form-text text-muted" id="payment_info">Fill in the amount and duration above to see your monthly payment</small>
+                        </div>
+
+                        <!-- Total Amount Preview -->
+                        <div class="mb-3">
+                            <label class="form-label">Total Amount to Pay</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="text" class="form-control" id="preview_total" readonly value="0.00">
+                            </div>
+                            <small class="form-text text-muted" id="total_info">Fill in the amount and duration above to see your total payment</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-paper-plane"></i> Submit Application
+                    </button>
+                    <a href="{{ path('app_credit_list') }}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+
+<style>
+    .card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+</style>
+{% endblock %}

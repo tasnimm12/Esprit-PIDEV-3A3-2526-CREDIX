@@ -1,0 +1,249 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Edit Credit - Admin{% endblock %}
+
+{% set errors = errors|default([]) %}
+{% set fieldErrors = fieldErrors|default({}) %}
+{% set formData = formData|default({}) %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h1 class="mb-4">Edit Credit #{{ credit.getIdCredit() }}</h1>
+
+            {% if errors|length > 0 %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Please fix the following errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+
+            {% if app.flashes %}
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" class="needs-validation">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Credit Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- User Info (Read-only) -->
+                        <div class="mb-3">
+                            <label for="user_name" class="form-label">User</label>
+                            <input type="text" class="form-control" id="user_name" readonly 
+                                   value="{{ credit.getUtilisateur().getPrenom() }} {{ credit.getUtilisateur().getNom() }} ({{ credit.getUtilisateur().getEmail() }})">
+                            <small class="form-text text-muted">User cannot be changed after creation</small>
+                        </div>
+
+                        <!-- Amount -->
+                        <div class="mb-3">
+                            <label for="montant_demande" class="form-label">Amount $ *</label>
+                            <input type="number" class="form-control {% if fieldErrors['montant_demande']|default(false) %}is-invalid{% endif %}" 
+                                   id="montant_demande" name="montant_demande" 
+                                   value="{{ formData['montant_demande']|default(credit.getMontantDemande()) }}">
+                            {% if fieldErrors['montant_demande']|default(false) %}
+                                <div class="invalid-feedback d-block">{{ fieldErrors['montant_demande'] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Credit Type -->
+                        <div class="mb-3">
+                            <label for="type_credit" class="form-label">Credit Type (Duration) *</label>
+                            <select class="form-select {% if fieldErrors['type_credit']|default(false) %}is-invalid{% endif %}" 
+                                    id="type_credit" name="type_credit">
+                                <option value="">Select a credit type...</option>
+                                {% for type in creditTypes %}
+                                    <option value="{{ type }}" {% if type == formData['type_credit']|default(credit.getTypeCredit()) %}selected{% endif %}>{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if fieldErrors['type_credit']|default(false) %}
+                                <div class="invalid-feedback d-block">{{ fieldErrors['type_credit'] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Interest Rate -->
+                        <div class="mb-3">
+                            <label for="taux_interet" class="form-label">Interest Rate (Annual %) *</label>
+                            <input type="number" class="form-control {% if fieldErrors['taux_interet']|default(false) %}is-invalid{% endif %}" 
+                                   id="taux_interet" name="taux_interet" 
+                                   value="{{ formData['taux_interet']|default(credit.getTauxInteret()) }}" step="0.01">
+                            {% if fieldErrors['taux_interet']|default(false) %}
+                                <div class="invalid-feedback d-block">{{ fieldErrors['taux_interet'] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Bank Account -->
+                        <div class="mb-3">
+                            <label for="compte_id" class="form-label">Bank Account *</label>
+                            <select class="form-select {% if fieldErrors['compte_id']|default(false) %}is-invalid{% endif %}" 
+                                    id="compte_id" name="compte_id">
+                                <option value="">Select a bank account...</option>
+                                {% for compte in bankAccounts %}
+                                    <option value="{{ compte.getId() }}" {% if compte.getId() == formData['compte_id']|default(credit.getCompte().getId()) %}selected{% endif %}>
+                                        {{ compte.getTypeCompte() }} - {{ compte.getNumeroCompte() }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if fieldErrors['compte_id']|default(false) %}
+                                <div class="invalid-feedback d-block">{{ fieldErrors['compte_id'] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Subscription Discount -->
+                        <div class="mb-3">
+                            <label for="abonnement_id" class="form-label">Subscription (for discount)</label>
+                            <select class="form-select {% if fieldErrors['abonnement_id']|default(false) %}is-invalid{% endif %}" 
+                                    id="abonnement_id" name="abonnement_id">
+                                <option value="">No subscription</option>
+                                {% for abo in abonnements %}
+                                    <option value="{{ abo.getIdAbonnement() }}" data-discount="{{ abo.getReductionPourcentage() ?? 0 }}"
+                                            {% if abo.getIdAbonnement() == formData['abonnement_id']|default(credit.getAbonnement() ? credit.getAbonnement().getIdAbonnement() : '') %}selected{% endif %}>
+                                        {{ abo.getTypeAbonnement() }} ({{ abo.getReductionPourcentage() ?? 0 }}% discount)
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if fieldErrors['abonnement_id']|default(false) %}
+                                <div class="invalid-feedback d-block">{{ fieldErrors['abonnement_id'] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-3">
+                            <label for="statut_credit" class="form-label">Status *</label>
+                            <select class="form-select {% if fieldErrors['statut_credit']|default(false) %}is-invalid{% endif %}" 
+                                    id="statut_credit" name="statut_credit">
+                                {% for status in creditStatuses %}
+                                    <option value="{{ status }}" {% if status == formData['statut_credit']|default(credit.getStatutCredit()) %}selected{% endif %}>
+                                        {{ status|replace({'_': ' '}) }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if fieldErrors['statut_credit']|default(false) %}
+                                <div class="invalid-feedback d-block">{{ fieldErrors['statut_credit'] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Preview -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Payment Preview</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Monthly Payment</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="preview_payment" readonly value="{{ credit.getMensualite()|number_format(2, '.', '') }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Total Amount to Pay</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="text" class="form-control" id="preview_total" readonly value="{{ credit.getMontantTotal()|number_format(2, '.', '') }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Original Information (Info) -->
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">Credit Timeline</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <label class="text-muted small">Application Date</label>
+                                <p>{{ credit.getDateDemande()|date('d/m/Y') }}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted small">Start Date</label>
+                                <p>
+                                    {% if credit.getDateDebut() %}
+                                        {{ credit.getDateDebut()|date('d/m/Y') }}
+                                    {% else %}
+                                        <span class="text-muted">Not started</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="text-muted small">End Date</label>
+                                <p>
+                                    {% if credit.getDateFin() %}
+                                        {{ credit.getDateFin()|date('d/m/Y') }}
+                                    {% else %}
+                                        <span class="text-muted">Not set</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-save"></i> Update Credit
+                    </button>
+                    <a href="{{ path('app_admin_credits') }}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<style>
+    .card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .is-invalid {
+        border-color: #dc3545 !important;
+    }
+
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}

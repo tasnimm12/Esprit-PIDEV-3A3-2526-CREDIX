@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ projet.getNomprojet() }} - Project{% endblock %}
+
+{% block content %} 
+<div class="container mt-5 pt-5 pb-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1>{{ projet.getNomprojet() }}</h1>
+            <p class="text-muted">{{ projet.getSecteur() }}</p>
+        </div>
+        {% if isAdmin %}
+        <div class="col-md-4 text-end">
+            <a href="{{ path('app_projet_edit', {id: projet.getIdprojet()}) }}" class="btn btn-warning btn-sm">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <form action="{{ path('app_projet_delete', {id: projet.getIdprojet()}) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Description</h5>
+                    <p>{{ projet.getDescription() ?? 'No description provided' }}</p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Investment Progress</h5>
+                    <div class="progress mb-3" style="height: 25px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ progressPercentage }}%">
+                            {{ progressPercentage|round(1) }}%
+                        </div>
+                    </div>
+                    <p class="text-muted">
+                        Collected: <strong>{{ totalInvesti|number_format(2, '.', ',') }} D.T</strong> / 
+                        Target: <strong>{{ projet.getMontantObjectif()|number_format(2, '.', ',') }} D.T</strong>
+                    </p>
+                    <p class="text-muted">
+                        <i class="fas fa-users"></i> {{ countInvestisseurs }} investor(s)
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Project Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Start Date</small>
+                        <strong>{{ projet.getDateDebut()|date('d/m/Y') }}</strong>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">End Date</small>
+                        <strong>{{ projet.getDateFin()|date('d/m/Y') }}</strong>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Status</small>
+                        <span class="badge bg-{% if projet.getStatutProjet() == 'ACTIF' %}success{% elseif projet.getStatutProjet() == 'SUSPENDU' %}warning{% else %}danger{% endif %}">
+                            {{ projet.getStatutProjet() }}
+                        </span>
+                    </div>
+                    {% if projet.getStatutProjet() == 'ACTIF' %}
+                    <div class="d-grid">
+                        <a href="{{ path('app_investissement_create', {projetId: projet.getIdprojet()}) }}" class="btn btn-success">
+                            <i class="fas fa-hand-holding-heart"></i> Invest Now
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

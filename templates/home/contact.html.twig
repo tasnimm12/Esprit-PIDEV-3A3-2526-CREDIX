@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Contact - Credix{% endblock %}
+
+{% block content %}
+    <!-- Contact Start -->
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
+                <p class="d-inline-block border rounded text-primary fw-semi-bold py-1 px-3">Contact Us</p>
+                <h1 class="display-5 mb-4">Get In Touch</h1>
+            </div>
+            <div class="row g-5">
+                <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.1s">
+                    <div class="d-flex flex-column h-100">
+                        <div class="contact-item d-flex mb-4">
+                            <div class="flex-shrink-0 btn-lg-square rounded-circle bg-light">
+                                <i class="fa fa-map-marker-alt text-primary"></i>
+                            </div>
+                            <div class="ps-3">
+                                <h4>Location</h4>
+                                <p>123 Street, New York, USA</p>
+                            </div>
+                        </div>
+                        <div class="contact-item d-flex mb-4">
+                            <div class="flex-shrink-0 btn-lg-square rounded-circle bg-light">
+                                <i class="fa fa-envelope text-primary"></i>
+                            </div>
+                            <div class="ps-3">
+                                <h4>Email</h4>
+                                <p>info@example.com</p>
+                            </div>
+                        </div>
+                        <div class="contact-item d-flex">
+                            <div class="flex-shrink-0 btn-lg-square rounded-circle bg-light">
+                                <i class="fa fa-phone-alt text-primary"></i>
+                            </div>
+                            <div class="ps-3">
+                                <h4>Phone</h4>
+                                <p>+012 345 6789</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 wow fadeInUp" data-wow-delay="0.3s">
+                    <form action="" method="POST">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control border-0 py-3 px-4" placeholder="Your Name">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="email" class="form-control border-0 py-3 px-4" placeholder="Your Email">
+                            </div>
+                            <div class="col-12">
+                                <input type="text" class="form-control border-0 py-3 px-4" placeholder="Subject">
+                            </div>
+                            <div class="col-12">
+                                <textarea class="form-control border-0 py-3 px-4" rows="5" placeholder="Message"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary py-3 px-5">Send Message</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Contact End -->
+{% endblock %}

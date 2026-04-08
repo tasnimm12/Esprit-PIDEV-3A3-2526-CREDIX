@@ -1,0 +1,350 @@
+{% extends 'base_admin.html.twig' %}
+
+{% set errors = errors|default([]) %}
+{% set fieldErrors = fieldErrors|default({}) %}
+{% set formData = formData|default({}) %}
+
+{% block title %}
+    {% if contract %}
+        Edit Contract - Admin - Credix
+    {% else %}
+        New Contract - Admin - Credix
+    {% endif %}
+{% endblock %}
+
+{% block breadcrumb_current %}
+    {% if contract %}
+        Edit Contract
+    {% else %}
+        New Contract
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="display-6 mb-2">
+                            {% if contract %}
+                                Edit Contract
+                            {% else %}
+                                Create New Contract
+                            {% endif %}
+                        </h1>
+                        <p class="text-muted">Fill in the form below to {% if contract %}update{% else %}create{% endif %} a contract</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Errors Alert -->
+        {% if errors|length > 0 %}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="alert alert-danger alert-dismissible fade show border-2 border-danger" role="alert">
+                        <div class="d-flex align-items-start">
+                            <i class="fa fa-exclamation-triangle fa-2x me-3 text-danger flex-shrink-0"></i>
+                            <div class="flex-grow-1">
+                                <h5 class="alert-heading mb-2">
+                                    <i class="fa fa-times-circle me-2"></i>Validation Errors - Please Fix These Issues
+                                </h5>
+                                <p class="mb-2 text-muted small">Please review and correct the following errors before submitting:</p>
+                                <ul class="mb-0 mt-2">
+                                    {% for error in errors %}
+                                        <li class="mb-1">
+                                            <strong>{{ error }}</strong>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <button type="button" class="btn-close ms-2 flex-shrink-0" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Form Card -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-5">
+                        <form method="POST">
+                            <!-- Basic Information Section -->
+                            <div class="mb-4">
+                                <h5 class="card-title mb-3"><i class="fa fa-file me-2 text-primary"></i>Basic Information</h5>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="numero_contrat" class="form-label">Contract Number <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control {% if fieldErrors['numero']|default(false) %}is-invalid{% endif %}" id="numero_contrat" name="numero_contrat" 
+                                            value="{{ formData['numero_contrat']|default(contract ? contract.numeroContrat : '') }}" placeholder="e.g., CTR-2024-001">
+                                        {% if fieldErrors['numero']|default(false) %}
+                                        <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                            <i class="fas fa-exclamation-circle"></i> {{ fieldErrors['numero'] }}
+                                        </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted d-block mt-1">Required, 3-50 characters</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="statut" class="form-label">Status <span class="text-danger">*</span></label>
+                                        <select class="form-select {% if fieldErrors['statut']|default(false) %}is-invalid{% endif %}" id="statut" name="statut">
+                                            <option value="">-- Select Status --</option>
+                                            <option value="ACCEPTED" {% if (formData['statut']|default(contract ? contract.getStatut() : '')) == 'ACCEPTED' %}selected{% endif %}>Accepted</option>
+                                            <option value="EN_ATTENTE" {% if (formData['statut']|default(contract ? contract.getStatut() : '')) == 'EN_ATTENTE' %}selected{% endif %}>Pending</option>
+                                            <option value="ACTIF" {% if (formData['statut']|default(contract ? contract.getStatut() : '')) == 'ACTIF' %}selected{% endif %}>Active</option>
+                                            <option value="EXPIRE" {% if (formData['statut']|default(contract ? contract.getStatut() : '')) == 'EXPIRE' %}selected{% endif %}>Expired</option>
+                                            <option value="RESILIE" {% if (formData['statut']|default(contract ? contract.getStatut() : '')) == 'RESILIE' %}selected{% endif %}>Cancelled</option>
+                                            <option value="SUSPENDU" {% if (formData['statut']|default(contract ? contract.getStatut() : '')) == 'SUSPENDU' %}selected{% endif %}>Suspended</option>
+                                        </select>
+                                        {% if fieldErrors['statut']|default(false) %}
+                                        <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                            <i class="fas fa-exclamation-circle"></i> {{ fieldErrors['statut'] }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="assurance_id" class="form-label">Select Insurance <span class="text-danger">*</span></label>
+                                        <select class="form-select {% if fieldErrors['assurance']|default(false) %}is-invalid{% endif %}" id="assurance_id" name="assurance_id">
+                                            <option value="">-- Select an Insurance Policy --</option>
+                                            {% for assurance in assurances %}
+                                                <option value="{{ assurance.id }}" {% if (formData['assurance_id']|default(contract and contract.assurance ? contract.assurance.id : app.request.query.get('assurance_id'))) == assurance.id %}selected{% endif %}>
+                                                    {{ assurance.compagnie }} - {{ assurance.typeAssurance }} (#{{ assurance.numeroPolice }})
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if fieldErrors['assurance']|default(false) %}
+                                        <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                            <i class="fas fa-exclamation-circle"></i> {{ fieldErrors['assurance'] }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="utilisateur_id" class="form-label">Select User <span class="text-danger">*</span></label>
+                                        <select class="form-select {% if fieldErrors['user']|default(false) %}is-invalid{% endif %}" id="utilisateur_id" name="utilisateur_id">
+                                            <option value="">-- Select a User --</option>
+                                            {% for u in users %}
+                                                <option value="{{ u.id }}" {% if (formData['utilisateur_id']|default(contract and contract.utilisateur ? contract.utilisateur.id : app.user.id)) == u.id %}selected{% endif %}>
+                                                    {{ u.prenom }} {{ u.nom }} ({{ u.email }})
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if fieldErrors['user']|default(false) %}
+                                        <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                            <i class="fas fa-exclamation-circle"></i> {{ fieldErrors['user'] }}
+                                        </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted d-block mt-1">Assign contract to a user</small>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="compte_bancaire_id" class="form-label">Select Bank Account</label>
+                                        <select class="form-select {% if fieldErrors['compte']|default(false) %}is-invalid{% endif %}" id="compte_bancaire_id" name="compte_bancaire_id">
+                                            <option value="">-- Select Bank Account --</option>
+                                            {% for compte in comptesBancaires %}
+                                                <option value="{{ compte.id }}" data-user-id="{{ compte.utilisateur.id }}" {% if (formData['compte_bancaire_id']|default(contract and contract.compteBancaire ? contract.compteBancaire.id : '')) == compte.id %}selected{% endif %}>
+                                                    {{ compte.titulaire }} - Account #{{ compte.numeroCompte }} (Balance: ${{ compte.solde|number_format(2) }})
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if fieldErrors['compte']|default(false) %}
+                                        <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                            <i class="fas fa-exclamation-circle"></i> {{ fieldErrors['compte'] }}
+                                        </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted d-block mt-1">Optional: Select a bank account for this contract</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Dates Section -->
+                            <div class="mb-4">
+                                <h5 class="card-title mb-3"><i class="fa fa-calendar me-2 text-warning"></i>Contract Dates</h5>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="date_signature" class="form-label">Signing Date <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control {% if fieldErrors['date_sign']|default(false) %}is-invalid{% endif %}" id="date_signature" name="date_signature" 
+                                            value="{{ formData['date_signature']|default(contract and contract.dateSignature ? contract.dateSignature|date('Y-m-d') : '') }}">
+                                        {% if fieldErrors['date_sign']|default(false) %}
+                                        <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                            <i class="fas fa-exclamation-circle"></i> {{ fieldErrors['date_sign'] }}
+                                        </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted d-block mt-1">Cannot be in the future</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="date_fin_contrat" class="form-label">Expiration Date <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control {% if fieldErrors['date_fin']|default(false) %}is-invalid{% endif %}" id="date_fin_contrat" name="date_fin_contrat" 
+                                            value="{{ formData['date_fin_contrat']|default(contract and contract.dateFinContrat ? contract.dateFinContrat|date('Y-m-d') : '') }}">
+                                        {% if fieldErrors['date_fin']|default(false) %}
+                                        <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                            <i class="fas fa-exclamation-circle"></i> {{ fieldErrors['date_fin'] }}
+                                        </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted d-block mt-1">Must be after signing date</small>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="duree_contrat" class="form-label">Duration (months) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control {% if fieldErrors['duree']|default(false) %}is-invalid{% endif %}" id="duree_contrat" name="duree_contrat" 
+                                            value="{{ formData['duree_contrat']|default(contract ? contract.dureeContrat : '') }}" placeholder="e.g., 12">
+                                        {% if fieldErrors['duree']|default(false) %}
+                                        <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                            <i class="fas fa-exclamation-circle"></i> {{ fieldErrors['duree'] }}
+                                        </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted d-block mt-1">Whole number, 0-360 months</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Coverage Details Section -->
+                            <div class="mb-4">
+                                <h5 class="card-title mb-3"><i class="fa fa-shield me-2 text-success"></i>Coverage Details</h5>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="plafond_annuel" class="form-label">Annual Ceiling ($) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control {% if fieldErrors['plafond']|default(false) %}is-invalid{% endif %}" id="plafond_annuel" 
+                                            name="plafond_annuel" value="{{ formData['plafond_annuel']|default(contract ? contract.plafondAnnuel : '') }}" placeholder="50000.00">
+                                        {% if fieldErrors['plafond']|default(false) %}
+                                        <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                            <i class="fas fa-exclamation-circle"></i> {{ fieldErrors['plafond'] }}
+                                        </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted d-block mt-1">Maximum annual payout (positive number)</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="taux_remboursement" class="form-label">Reimbursement Rate (%) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control {% if fieldErrors['taux']|default(false) %}is-invalid{% endif %}" id="taux_remboursement" 
+                                            name="taux_remboursement" value="{{ formData['taux_remboursement']|default(contract ? contract.tauxRemboursement : '') }}" placeholder="80">
+                                        {% if fieldErrors['taux']|default(false) %}
+                                        <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                            <i class="fas fa-exclamation-circle"></i> {{ fieldErrors['taux'] }}
+                                        </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted d-block mt-1">0-100% coverage percentage</small>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="prix_assurance" class="form-label">Subscription Cost ($)</label>
+                                        <input type="number" class="form-control" id="prix_assurance" 
+                                            name="prix_assurance" value="{{ formData['prix_assurance']|default(assurance.prixAssurance ?? contract.assurance.prixAssurance ?? '') }}" placeholder="100.00">
+                                        <small class="form-text text-muted d-block mt-1">Cost for this subscription</small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="delai_carence" class="form-label">Waiting Period (days) <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control {% if fieldErrors['delai']|default(false) %}is-invalid{% endif %}" id="delai_carence" name="delai_carence" 
+                                            value="{{ formData['delai_carence']|default(contract ? contract.delaiCarence : '') }}" placeholder="30">
+                                        {% if fieldErrors['delai']|default(false) %}
+                                        <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                            <i class="fas fa-exclamation-circle"></i> {{ fieldErrors['delai'] }}
+                                        </div>
+                                        {% endif %}
+                                        <small class="form-text text-muted d-block mt-1">Days before coverage starts (0-365)</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Terms & Conditions Section -->
+                            <div class="mb-4">
+                                <h5 class="card-title mb-3"><i class="fa fa-list me-2 text-info"></i>Terms & Conditions</h5>
+                                <div class="mb-3">
+                                    <label for="conditions_particulieres" class="form-label">Special Conditions</label>
+                                    <textarea class="form-control" id="conditions_particulieres" name="conditions_particulieres" rows="3" placeholder="Enter any special terms...">{{ contract.conditionsParticulieres ?? '' }}</textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="exclusions" class="form-label">Exclusions</label>
+                                    <textarea class="form-control" id="exclusions" name="exclusions" rows="3" placeholder="List any exclusions...">{{ contract.exclusions ?? '' }}</textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="clause_beneficiaire" class="form-label">Beneficiary Clause</label>
+                                    <textarea class="form-control" id="clause_beneficiaire" name="clause_beneficiaire" rows="2" placeholder="Define beneficiary terms...">{{ contract.clauseBeneficiaire ?? '' }}</textarea>
+                                </div>
+                            </div>
+
+                            <hr class="my-4">
+
+                            <!-- Form Actions -->
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fa fa-save me-2"></i>{{ contract ? 'Update Contract' : 'Create Contract' }}
+                                </button>
+                                <a href="{{ path('app_admin_contracts') }}" class="btn btn-secondary btn-lg">
+                                    <i class="fa fa-arrow-left me-2"></i>Cancel
+                                </a>
+                            </div>
+
+                            <p class="text-muted mt-4">
+                                <small><span class="text-danger">*</span> = Required field</small>
+                            </p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Sidebar -->
+            <div class="col-lg-4">
+                <div class="card border-0 shadow-sm bg-light">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3"><i class="fa fa-lightbulb me-2 text-warning"></i>Contract Tips</h6>
+                        <ul class="list-unstyled small">
+                            <li class="mb-2">
+                                <i class="fa fa-check text-success me-2"></i>
+                                <strong>Contract Number:</strong> Use unique identifier like CTR-2024-001
+                            </li>
+                            <li class="mb-2">
+                                <i class="fa fa-check text-success me-2"></i>
+                                <strong>Annual Ceiling:</strong> Max amount covered per year
+                            </li>
+                            <li class="mb-2">
+                                <i class="fa fa-check text-success me-2"></i>
+                                <strong>Reimbursement Rate:</strong> Percentage client gets back
+                            </li>
+                            <li class="mb-2">
+                                <i class="fa fa-check text-success me-2"></i>
+                                <strong>Waiting Period:</strong> Days before claims are eligible
+                            </li>
+                            <li>
+                                <i class="fa fa-check text-success me-2"></i>
+                                <strong>Clear Terms:</strong> Define all special conditions upfront
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card border-0 shadow-sm mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title mb-3"><i class="fa fa-info-circle me-2 text-info"></i>Contract Status</h6>
+                        <small class="text-muted">
+                            <ul class="list-unstyled mb-0">
+                                <li><strong>Active:</strong> Contract is in effect</li>
+                                <li><strong>Inactive:</strong> Contract not started</li>
+                                <li><strong>Expired:</strong> Contract has ended</li>
+                                <li><strong>Suspended:</strong> Temporarily on hold</li>
+                            </ul>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

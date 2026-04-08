@@ -1,0 +1,268 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}{{ title }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-exclamation-triangle"></i> Claim #{{ sinistre.id }} Details</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('app_sinistre_list') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Claims
+            </a>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    {% if app.flashes %}
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ type === 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Claim Details Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Claim Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Status</strong></label>
+                                <div>
+                                    {% if sinistre.statut == 'EN_ATTENTE' %}
+                                        <span class="badge bg-warning text-dark" style="font-size: 1rem;">
+                                            <i class="fas fa-clock"></i> Pending
+                                        </span>
+                                    {% elseif sinistre.statut == 'ACCEPTE' %}
+                                        <span class="badge bg-success" style="font-size: 1rem;">
+                                            <i class="fas fa-check"></i> Accepted
+                                        </span>
+                                    {% elseif sinistre.statut == 'REJETE' %}
+                                        <span class="badge bg-danger" style="font-size: 1rem;">
+                                            <i class="fas fa-times"></i> Rejected
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Filed Date</strong></label>
+                                <p>{{ sinistre.createdAt|date('d/m/Y H:i') }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Incident Date</strong></label>
+                                <p>{{ sinistre.dateSinistre|date('d/m/Y') }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label"><strong>Contract Number</strong></label>
+                                <p>{{ sinistre.contrat.numeroContrat }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label"><strong>User Information</strong></label>
+                        <div class="alert alert-light">
+                            <p class="mb-1"><strong>Name:</strong> {{ sinistre.utilisateur.nom }} {{ sinistre.utilisateur.prenom }}</p>
+                            <p class="mb-0"><strong>Email:</strong> {{ sinistre.utilisateur.email }}</p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-4">
+                        <label class="form-label"><strong>Claim Description</strong></label>
+                        <div class="alert alert-light">
+                            <p style="white-space: pre-wrap;">{{ sinistre.description }}</p>
+                        </div>
+                    </div>
+
+                    {% if sinistre.preuves|length > 0 %}
+                        <hr>
+                        <div class="mb-4">
+                            <label class="form-label"><strong>Evidence / Supporting Documents</strong></label>
+                            <div class="row">
+                                {% for preuve in sinistre.preuves %}
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card">
+                                            {% if preuve.typeFichier starts with 'image/' %}
+                                                <img src="{{ preuve.fichier }}" class="card-img-top" alt="{{ preuve.nomFichier }}" style="max-height: 200px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="card-body text-center bg-light">
+                                                    <i class="fas fa-file" style="font-size: 2rem; color: #999;"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div class="card-body">
+                                                <h6 class="card-title">{{ preuve.nomFichier }}</h6>
+                                                <p class="card-text text-muted"><small>{{ preuve.createdAt|date('d/m/Y H:i') }}</small></p>
+                                                <a href="{{ preuve.fichier }}" target="_blank" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-download"></i> View
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- AI Damage Analysis Section -->
+            {{ include('sinistre/damage_analysis.html.twig') }}
+
+            <!-- Admin Response Section -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Admin Response</h5>
+                </div>
+                <div class="card-body">
+                    {% if sinistre.statut != 'EN_ATTENTE' %}
+                        <!-- Decision Badge -->
+                        <div class="mb-4">
+                            {% if sinistre.statut == 'ACCEPTE' %}
+                                <div class="alert alert-success" role="alert">
+                                    <h5 class="alert-heading">
+                                        <i class="fas fa-check-circle"></i> Claim Approved
+                                    </h5>
+                                    <hr>
+                                    <p class="mb-0"><strong>Decision Date:</strong> {{ sinistre.dateReponse|date('d/m/Y H:i') }}</p>
+                                </div>
+                            {% elseif sinistre.statut == 'REJETE' %}
+                                <div class="alert alert-danger" role="alert">
+                                    <h5 class="alert-heading">
+                                        <i class="fas fa-times-circle"></i> Claim Rejected
+                                    </h5>
+                                    <hr>
+                                    <p class="mb-0"><strong>Decision Date:</strong> {{ sinistre.dateReponse|date('d/m/Y H:i') }}</p>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- User Notification Message -->
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Message Shown to User:</strong></label>
+                            <div class="alert alert-light border">
+                                <p style="white-space: pre-wrap; margin: 0;">
+                                    {% if sinistre.adminReponse %}
+                                        {{ sinistre.adminReponse }}
+                                    {% else %}
+                                        <em class="text-muted">No message provided</em>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No admin response yet. Use the Edit button to approve or reject this claim.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            {% if sinistre.statut == 'EN_ATTENTE' %}
+                <div class="row gap-2 mb-4">
+                    <div class="col-md-6">
+                        <a href="{{ path('app_sinistre_edit', {id: sinistre.id}) }}" class="btn btn-warning w-100">
+                            <i class="fas fa-edit"></i> Edit Claim & Respond
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <form action="{{ path('app_sinistre_delete', {id: sinistre.id}) }}" method="POST" 
+                              onsubmit="return confirm('Are you sure you want to delete this claim?');" class="w-100">
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="fas fa-trash"></i> Delete Claim
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Claim ID</small>
+                        <h6 class="mb-0">#{{ sinistre.id }}</h6>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Status</small>
+                        <h6 class="mb-0">
+                            {% if sinistre.statut == 'EN_ATTENTE' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            {% elseif sinistre.statut == 'ACCEPTE' %}
+                                <span class="badge bg-success">Accepted</span>
+                            {% elseif sinistre.statut == 'REJETE' %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% endif %}
+                        </h6>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <small class="text-muted">User</small>
+                        <h6 class="mb-0">{{ sinistre.utilisateur.prenom }} {{ sinistre.utilisateur.nom }}</h6>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Email</small>
+                        <h6 class="mb-0">
+                            <a href="mailto:{{ sinistre.utilisateur.email }}">{{ sinistre.utilisateur.email }}</a>
+                        </h6>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Contract</small>
+                        <h6 class="mb-0">{{ sinistre.contrat.numeroContrat }}</h6>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Insurance Type</small>
+                        <h6 class="mb-0">{{ sinistre.contrat.assurance.typeAssurance }}</h6>
+                    </div>
+
+                    <hr>
+
+                    <div class="mb-0">
+                        <small class="text-muted">Filed</small>
+                        <p class="text-muted mb-0">
+                            <small>{{ sinistre.createdAt|date('d/m/Y H:i') }}</small>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
