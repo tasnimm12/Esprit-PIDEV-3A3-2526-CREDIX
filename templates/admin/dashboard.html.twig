@@ -1,0 +1,973 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Admin Dashboard - Credix{% endblock %}
+
+{% block breadcrumb_current %}Dashboard{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-0">
+        <!-- Dashboard Header -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="display-5 mb-2">Dashboard</h1>
+                        <p class="text-muted">Welcome back! Here's your system overview.</p>
+                    </div>
+                    <a href="{{ path('app_admin_bulk_email') }}" class="btn btn-primary btn-lg">
+                        <i class="fa fa-envelope"></i> Send Bulk Email
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics Cards Row 1 -->
+            <div class="row g-4 mb-5">
+                <!-- Users Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Total Users</p>
+                                    <h3 class="mb-0 text-primary">{{ totalUsers }}</h3>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                    <i class="fa fa-users text-primary" style="font-size: 24px;"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-3">
+                                <i class="fa fa-shield-alt"></i> Admins: {{ totalAdmins }}
+                                | <i class="fa fa-user"></i> Clients: {{ totalClients }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insurance Policies Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Insurance Policies</p>
+                                    <h3 class="mb-0 text-success">{{ totalAssurances }}</h3>
+                                </div>
+                                <div class="bg-success bg-opacity-10 p-3 rounded">
+                                    <i class="fa fa-shield" text-success" style="font-size: 24px;"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-3">
+                                <span class="badge bg-success">Active: {{ activeAssurances }}</span>
+                                <span class="badge bg-secondary">Inactive: {{ inactiveAssurances }}</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contracts Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Contracts</p>
+                                    <h3 class="mb-0 text-info">{{ totalContracts }}</h3>
+                                </div>
+                                <div class="bg-info bg-opacity-10 p-3 rounded">
+                                    <i class="fa fa-file-contract text-info" style="font-size: 24px;"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-3">
+                                <span class="badge bg-info">Active: {{ activeContracts }}</span>
+                                <span class="badge bg-danger">Expired: {{ expiredContracts }}</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Claims Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Claims (Sinistres)</p>
+                                    <h3 class="mb-0 text-warning">{{ totalSinistres }}</h3>
+                                </div>
+                                <div class="bg-warning bg-opacity-10 p-3 rounded">
+                                    <i class="fa fa-exclamation-triangle text-warning" style="font-size: 24px;"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-3">
+                                <span class="badge bg-warning">Pending: {{ pendingSinistres }}</span>
+                                <span class="badge bg-success">Accepted: {{ acceptedSinistres }}</span>
+                                <span class="badge bg-danger">Rejected: {{ rejectedSinistres }}</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bank Accounts Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Bank Accounts</p>
+                                    <h3 class="mb-0 text-danger">{{ totalBankAccounts }}</h3>
+                                </div>
+                                <div class="bg-danger bg-opacity-10 p-3 rounded">
+                                    <i class="fa fa-university text-danger" style="font-size: 24px;"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-3">
+                                <span class="badge bg-success">Active: {{ activeBankAccounts }}</span>
+                                <span class="badge bg-secondary">Balance: ${{ totalBalance|number_format(2) }}</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Depenses Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Total Expenses</p>
+                                    <h3 class="mb-0 text-secondary">{{ totalDepenses }}</h3>
+                                </div>
+                                <div class="bg-secondary bg-opacity-10 p-3 rounded">
+                                    <i class="fa fa-credit-card text-secondary" style="font-size: 24px;"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-3">
+                                <span class="badge bg-dark">Budget: ${{ depenseBudget|number_format(2) }}</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Credits Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Total Credits</p>
+                                    <h3 class="mb-0 text-primary">{{ totalCredits }}</h3>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                    <i class="fa fa-handshake text-primary" style="font-size: 24px;"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-3">
+                                <span class="badge bg-warning">Pending: {{ pendingCredits }}</span>
+                                <span class="badge bg-success">Approved: {{ acceptedCredits }}</span>
+                                <span class="badge bg-danger">Denied: {{ rejectedCredits }}</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Remboursements Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Remboursements</p>
+                                    <h3 class="mb-0 text-info">{{ totalRemboursements }}</h3>
+                                </div>
+                                <div class="bg-info bg-opacity-10 p-3 rounded">
+                                    <i class="fa fa-money-bill-wave text-info" style="font-size: 24px;"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-3">
+                                <span class="badge bg-warning">Pending: {{ pendingRemboursements }}</span>
+                                <span class="badge bg-success">Completed: {{ completedRemboursements }}</span>
+                            </small>
+                            <div class="mt-3">
+                                <a href="{{ path('app_remboursement_admin_list') }}" class="text-decoration-none small btn btn-sm btn-outline-info w-100">
+                                    <i class="fa fa-cog"></i> Manage Remboursements
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Projects</p>
+                                    <h3 class="mb-0 text-success">{{ totalProjects }}</h3>
+                                </div>
+                                <div class="bg-success bg-opacity-10 p-3 rounded">
+                                    <i class="fa fa-briefcase text-success" style="font-size: 24px;"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-3">
+                                <span class="badge bg-success">Active: {{ activeProjects }}</span>
+                                <span class="badge bg-secondary">Suspended: {{ suspendedProjects }}</span>
+                            </small>
+                            <div class="mt-3">
+                                <a href="{{ path('app_admin_projets') }}" class="text-decoration-none small btn btn-sm btn-outline-success w-100">
+                                    <i class="fa fa-cog"></i> Manage Projects
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Investments Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p class="text-muted mb-1">Investments</p>
+                                    <h3 class="mb-0 text-primary">{{ totalInvestments }}</h3>
+                                </div>
+                                <div class="bg-primary bg-opacity-10 p-3 rounded">
+                                    <i class="fa fa-hand-holding-heart text-primary" style="font-size: 24px;"></i>
+                                </div>
+                            </div>
+                            <small class="text-muted d-block mt-3">
+                                <span class="badge bg-warning">Pending: {{ pendingInvestments }}</span>
+                                <span class="badge bg-success">Accepted: {{ acceptedInvestments }}</span>
+                            </small>
+                            <div class="mt-3">
+                                <a href="{{ path('app_admin_investissements') }}" class="text-decoration-none small btn btn-sm btn-outline-primary w-100">
+                                    <i class="fa fa-cog"></i> Manage Investments
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Statistics Row -->
+            <div class="row g-4 mb-5">
+                <!-- Total Credit Amount Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Total Credit Amount</p>
+                            <h3 class="mb-0 text-success">${{ totalCreditAmount|number_format(2) }}</h3>
+                            <small class="text-muted d-block mt-2">All credit requests</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Remboursement Amount Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Total Remboursement</p>
+                            <h3 class="mb-0 text-info">${{ totalRemboursementAmount|number_format(2) }}</h3>
+                            <small class="text-muted d-block mt-2">All remboursements</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Cashback Card -->
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Total Cashback Earned</p>
+                            <h3 class="mb-0 text-success">${{ totalCashbackAmount|number_format(2) }}</h3>
+                            <small class="text-muted d-block mt-2">Subscription benefits</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links Row -->
+            <div class="row g-3 mb-5">
+                <div class="col-md-4">
+                    <a href="{{ path('app_admin_abonnements') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-cube text-primary" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">Manage</p>
+                                    <h6 class="mb-0">Subscription Plans</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ path('app_admin_client_subscriptions') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-users text-success" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">View</p>
+                                    <h6 class="mb-0">Client Subscriptions</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ path('app_admin_abonnement_new') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-info bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-plus text-info" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">Create</p>
+                                    <h6 class="mb-0">New Subscription</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Bank Accounts Quick Links -->
+                <div class="col-md-4">
+                    <a href="{{ path('app_admin_bank_accounts') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-danger bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-university text-danger" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">Manage</p>
+                                    <h6 class="mb-0">Bank Accounts</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ path('app_admin_bank_account_new') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-danger bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-plus-circle text-danger" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">Create</p>
+                                    <h6 class="mb-0">New Bank Account</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Depenses Quick Links -->
+                <div class="col-md-4">
+                    <a href="{{ path('app_admin_depenses') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-credit-card text-secondary" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">Manage</p>
+                                    <h6 class="mb-0">Expenses</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ path('app_admin_depense_new') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-plus-circle text-secondary" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">Create</p>
+                                    <h6 class="mb-0">New Expense</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Credits Quick Links -->
+                <div class="col-md-4">
+                    <a href="{{ path('app_admin_credits') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-handshake text-primary" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">Manage</p>
+                                    <h6 class="mb-0">Credits</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ path('app_admin_credit_new') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-plus-circle text-primary" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">Create</p>
+                                    <h6 class="mb-0">New Credit</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Projects Quick Links -->
+                <div class="col-md-4">
+                    <a href="{{ path('app_projet_list') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-briefcase text-success" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">Manage</p>
+                                    <h6 class="mb-0">Projects</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-4">
+                    <a href="{{ path('app_projet_create') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-plus-circle text-success" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">Create</p>
+                                    <h6 class="mb-0">New Project</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Investments Quick Links -->
+                <div class="col-md-4">
+                    <a href="{{ path('app_investissement_list') }}" class="card border-0 shadow-sm text-decoration-none text-reset h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-info bg-opacity-10 p-3 rounded me-3">
+                                    <i class="fa fa-hand-holding-heart text-info" style="font-size: 24px;"></i>
+                                </div>
+                                <div>
+                                    <p class="text-muted mb-0 small">Manage</p>
+                                    <h6 class="mb-0">Investments</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="row g-4 mb-5">
+                <!-- User Roles Chart -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h6 class="mb-0">User Distribution by Role</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="userRoleChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assurance Status Chart -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h6 class="mb-0">Insurance Status</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="assuranceStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contract Status Chart -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h6 class="mb-0">Contract Status</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="contractStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Claims Status Chart -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-transparent border-0">
+                            <h6 class="mb-0">Claims Status</h6>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="sinistreStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Recent Data Tables Row -->
+            <div class="row g-4">
+                <!-- Recent Users -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom py-3">
+                            <h6 class="mb-0">Recent Users</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <tbody>
+                                        {% for user in recentUsers %}
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="avatar bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                                            <i class="fa fa-user text-primary"></i>
+                                                        </div>
+                                                        <div class="ms-2">
+                                                            <small class="d-block">{{ user.prenom }} {{ user.nom }}</small>
+                                                            <small class="text-muted">{{ user.email }}</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end">
+                                                    <span class="badge bg-secondary">{{ user.role }}</span>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light text-center py-2">
+                            <a href="{{ path('app_admin_users') }}" class="text-decoration-none small">View all users →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Assurances -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom py-3">
+                            <h6 class="mb-0">Recent Policies</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <tbody>
+                                        {% for assurance in recentAssurances %}
+                                            <tr>
+                                                <td>
+                                                    <div>
+                                                        <small class="d-block fw-bold">{{ assurance.compagnie }}</small>
+                                                        <small class="text-muted">{{ assurance.typeAssurance }}</small>
+                                                    </div>
+                                                </td>
+                                                <td class="text-end">
+                                                    {% if assurance.statut == 'ACTIF' %}
+                                                        <span class="badge bg-success">Active</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Inactive</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light text-center py-2">
+                            <a href="{{ path('app_admin_assurances') }}" class="text-decoration-none small">View all policies →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Contracts -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom py-3">
+                            <h6 class="mb-0">Recent Contracts</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <tbody>
+                                        {% for contract in recentContracts %}
+                                            <tr>
+                                                <td>
+                                                    <small class="d-block">{{ contract.numeroContrat }}</small>
+                                                    <small class="text-muted">ID: {{ contract.id }}</small>
+                                                </td>
+                                                <td class="text-end">
+                                                    {% if contract.statut == 'ACTIF' %}
+                                                        <span class="badge bg-success">Active</span>
+                                                    {% elseif contract.statut == 'EXPIRE' %}
+                                                        <span class="badge bg-danger">Expired</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">{{ contract.statut }}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light text-center py-2">
+                            <a href="{{ path('app_admin_contracts') }}" class="text-decoration-none small">View all contracts →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Claims -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom py-3">
+                            <h6 class="mb-0">Recent Claims</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <tbody>
+                                        {% for sinistre in recentSinistres %}
+                                            <tr>
+                                                <td>
+                                                    <small class="d-block fw-bold">#{{ sinistre.id }}</small>
+                                                    <small class="text-muted">{{ sinistre.dateSinistre|date('d/m/Y') }}</small>
+                                                </td>
+                                                <td class="text-end">
+                                                    {% if sinistre.statut == 'EN_ATTENTE' %}
+                                                        <span class="badge bg-warning text-dark">Pending</span>
+                                                    {% elseif sinistre.statut == 'ACCEPTE' %}
+                                                        <span class="badge bg-success">Accepted</span>
+                                                    {% elseif sinistre.statut == 'REJETE' %}
+                                                        <span class="badge bg-danger">Rejected</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">{{ sinistre.statut }}</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light text-center py-2">
+                            <a href="{{ path('app_sinistre_list') }}" class="text-decoration-none small">View all claims →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Depenses -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom py-3">
+                            <h6 class="mb-0">Recent Expenses</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <tbody>
+                                        {% if recentDepenses|length > 0 %}
+                                            {% for depense in recentDepenses %}
+                                                <tr>
+                                                    <td>
+                                                        <div>
+                                                            <small class="d-block fw-bold">{{ depense.description|slice(0, 20) }}{{ depense.description|length > 20 ? '...' : '' }}</small>
+                                                            <small class="text-muted">{{ depense.dateDepense|date('d/m/Y') }}</small>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <span class="badge bg-secondary">${{ depense.montant|number_format(2) }}</span>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td class="text-center text-muted py-3">
+                                                    <small>No expenses</small>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light text-center py-2">
+                            <a href="{{ path('app_admin_depenses') }}" class="text-decoration-none small">View all expenses →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Credits -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom py-3">
+                            <h6 class="mb-0">Recent Credit Applications</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <tbody>
+                                        {% if recentCredits|length > 0 %}
+                                            {% for credit in recentCredits %}
+                                                <tr>
+                                                    <td>
+                                                        <div>
+                                                            <small class="d-block fw-bold">{{ credit.getUtilisateur().getPrenom() }}</small>
+                                                            <small class="text-muted">{{ credit.getDateDemande()|date('d/m/Y') }}</small>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        {% set statusClass = credit.getStatutCredit() == 'ACCEPTE' ? 'success' : (credit.getStatutCredit() == 'REFUSE' ? 'danger' : 'warning') %}
+                                                        <span class="badge bg-{{ statusClass }}">${{ credit.getMontantDemande()|number_format(0) }}</span>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td class="text-center text-muted py-3">
+                                                    <small>No credits</small>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light text-center py-2">
+                            <a href="{{ path('app_admin_credits') }}" class="text-decoration-none small">View all credits →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Remboursements -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom py-3">
+                            <h6 class="mb-0">Recent Remboursements</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <tbody>
+                                        {% if recentRemboursements|length > 0 %}
+                                            {% for remboursement in recentRemboursements %}
+                                                <tr>
+                                                    <td>
+                                                        <div>
+                                                            <small class="d-block fw-bold">#{{ remboursement.getIdRemboursement() }}</small>
+                                                            <small class="text-muted">{{ remboursement.getDateRemboursement()|date('d/m/Y') }}</small>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        <span class="badge bg-info">${{ remboursement.getMontant()|number_format(0) }}</span>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td class="text-center text-muted py-3">
+                                                    <small>No remboursements</small>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light text-center py-2">
+                            <a href="{{ path('app_remboursement_list') }}" class="text-decoration-none small">View all remboursements →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Bank Accounts -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent border-bottom py-3">
+                            <h6 class="mb-0">Recent Bank Accounts</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <tbody>
+                                        {% if recentBankAccounts|length > 0 %}
+                                            {% for compte in recentBankAccounts %}
+                                                <tr>
+                                                    <td>
+                                                        <small class="d-block fw-bold">{{ compte.titulaire }}</small>
+                                                        <small class="text-muted">{{ compte.numeroCompte|slice(-4) }}</small>
+                                                    </td>
+                                                    <td class="text-end">
+                                                        {% if compte.actif %}
+                                                            <span class="badge bg-success">Active</span>
+                                                        {% else %}
+                                                            <span class="badge bg-secondary">Inactive</span>
+                                                        {% endif %}
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td class="text-center text-muted py-3">
+                                                    <small>No bank accounts</small>
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light text-center py-2">
+                            <a href="{{ path('app_compte_bancaire_index') }}" class="text-decoration-none small">View all accounts →</a>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // User Role Chart
+        const userRoleCtx = document.getElementById('userRoleChart');
+        if (userRoleCtx) {
+            new Chart(userRoleCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Admins', 'Clients', 'Organisateurs'],
+                    datasets: [{
+                        data: [{{ userRoleData.admins }}, {{ userRoleData.clients }}, {{ userRoleData.organisateurs }}],
+                        backgroundColor: ['#0d6efd', '#198754', '#6c757d'],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Assurance Status Chart
+        const assuranceCtx = document.getElementById('assuranceStatusChart');
+        if (assuranceCtx) {
+            new Chart(assuranceCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Active', 'Inactive'],
+                    datasets: [{
+                        data: [{{ assuranceStatusData.active }}, {{ assuranceStatusData.inactive }}],
+                        backgroundColor: ['#198754', '#6c757d'],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Contract Status Chart
+        const contractCtx = document.getElementById('contractStatusChart');
+        if (contractCtx) {
+            new Chart(contractCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Active', 'Expired', 'Pending'],
+                    datasets: [{
+                        data: [{{ contractStatusData.active }}, {{ contractStatusData.expired }}, {{ contractStatusData.pending }}],
+                        backgroundColor: ['#0dcaf0', '#dc3545', '#ffc107'],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Sinistre Status Chart
+        const sinistreCtx = document.getElementById('sinistreStatusChart');
+        if (sinistreCtx) {
+            new Chart(sinistreCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Accepted', 'Rejected'],
+                    datasets: [{
+                        data: [{{ sinistreStatusData.pending }}, {{ sinistreStatusData.accepted }}, {{ sinistreStatusData.rejected }}],
+                        backgroundColor: ['#ffc107', '#198754', '#dc3545'],
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+    <style>
+        .hover-shadow:hover {
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+        
+        .transition {
+            transition: all 0.3s ease;
+        }
+    </style>
+{% endblock %}

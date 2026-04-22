@@ -1,0 +1,753 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Subscription Plans - Credix{% endblock %}
+
+{% block content %}
+<div class="subscriptions-container" style="margin-top: 150px;">
+    <!-- Header Section -->
+    <div class="subscriptions-header">
+        <div class="container-xxl">
+            <div class="row align-items-center mb-4">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-2" style="color: #1a3a52;">
+                        <i class="fa fa-gem me-3" style="color: #f39c12;"></i>Subscription Plans
+                    </h1>
+                    <p class="text-muted mb-0">Choose the perfect plan for your needs</p>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon total-subscribers">
+                            <i class="fa fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Total Plans</h6>
+                            <p class="stat-number">{{ abonnements|length }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon budget-friendly">
+                            <i class="fa fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Lowest Price</h6>
+                            <p class="stat-number">{% if abonnements|length > 0 %}${{ (abonnements|sort((a, b) => a.prixMensuel <=> b.prixMensuel))[0].prixMensuel|number_format(0) }}{% else %}0{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon premium-plans">
+                            <i class="fa fa-crown"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Highest Price</h6>
+                            <p class="stat-number">{% if abonnements|length > 0 %}${{ (abonnements|sort((a, b) => b.prixMensuel <=> a.prixMensuel))[0].prixMensuel|number_format(0) }}{% else %}0{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon my-plans">
+                            <i class="fa fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">My Subscriptions</h6>
+                            <p class="stat-number">{% if app.user %}{{ app.user.abonnements|length }}{% else %}0{% endif %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-xxl py-5">
+        <div class="container">
+
+            <!-- Search and Filter Section -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <h5 class="card-title mb-4">
+                                <i class="fa fa-search me-2 text-primary"></i>Search & Filter Plans
+                            </h5>
+                            <form method="get" class="row g-3">
+                                <!-- Smart Keyword Search with Autocomplete -->
+                                <div class="col-md-4">
+                                    <label for="keyword" class="form-label">
+                                        <i class="fa fa-search me-1"></i>Search by Name or Description
+                                    </label>
+                                    <div class="position-relative">
+                                        <input 
+                                            type="text" 
+                                            class="form-control" 
+                                            id="keyword" 
+                                            name="keyword" 
+                                            placeholder="Start typing..." 
+                                            value="{{ keyword }}"
+                                            autocomplete="off"
+                                        >
+                                        <!-- Autocomplete Dropdown -->
+                                        <div id="searchDropdown" class="list-group position-absolute w-100 mt-1" style="display: none; max-height: 300px; overflow-y: auto; z-index: 1000;">
+                                        </div>
+                                    </div>
+                                    <small class="form-text text-muted d-block mt-2">
+                                        <i class="fa fa-lightbulb me-1"></i>Type a character to see matching plans
+                                    </small>
+                                </div>
+
+                                <!-- Min Price Filter -->
+                                <div class="col-md-2">
+                                    <label for="minPrice" class="form-label">
+                                        <i class="fa fa-dollar-sign me-1"></i>Min Price
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="minPrice" 
+                                        name="minPrice" 
+                                        placeholder="0" 
+                                        value="{{ minPrice }}"
+                                    >
+                                </div>
+
+                                <!-- Max Price Filter -->
+                                <div class="col-md-2">
+                                    <label for="maxPrice" class="form-label">
+                                        <i class="fa fa-dollar-sign me-1"></i>Max Price
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="maxPrice" 
+                                        name="maxPrice" 
+                                        placeholder="999.99" 
+                                        value="{{ maxPrice }}"
+                                    >
+                                </div>
+
+                                <!-- Sort By -->
+                                <div class="col-md-2">
+                                    <label for="sort" class="form-label">
+                                        <i class="fa fa-sort me-1"></i>Sort By
+                                    </label>
+                                    <select class="form-select" id="sort" name="sort">
+                                        <option value="prix_mensuel" {% if sort == 'prix_mensuel' %}selected{% endif %}>Price</option>
+                                        <option value="type_abonnement" {% if sort == 'type_abonnement' %}selected{% endif %}>Name</option>
+                                        <option value="id" {% if sort == 'id' %}selected{% endif %}>Newest</option>
+                                    </select>
+                                </div>
+
+                                <!-- Sort Order -->
+                                <div class="col-md-2">
+                                    <label for="order" class="form-label">
+                                        <i class="fa fa-arrow-up-down me-1"></i>Order
+                                    </label>
+                                    <select class="form-select" id="order" name="order">
+                                        <option value="ASC" {% if order == 'ASC' %}selected{% endif %}>Low to High</option>
+                                        <option value="DESC" {% if order == 'DESC' %}selected{% endif %}>High to Low</option>
+                                    </select>
+                                </div>
+
+                                <!-- Search Button -->
+                                <div class="col-12">
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fa fa-search me-2"></i>Search
+                                        </button>
+                                        {% if keyword or minPrice or maxPrice or sort != 'prix_mensuel' or order != 'ASC' %}
+                                            <a href="{{ path('app_abonnement_list') }}" class="btn btn-outline-secondary">
+                                                <i class="fa fa-times me-2"></i>Clear Filters
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Results Info -->
+            {% if keyword or minPrice or maxPrice or (sort is defined and sort != 'prix_mensuel') or (order is defined and order != 'ASC') %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fa fa-filter me-2"></i>
+                            <strong>Filtering Results:</strong>
+                            {% if keyword %}<span class="badge bg-primary ms-2">Keyword: {{ keyword }}</span>{% endif %}
+                            {% if minPrice %}<span class="badge bg-info ms-2">From ${{ minPrice }}/mo</span>{% endif %}
+                            {% if maxPrice %}<span class="badge bg-info ms-2">To ${{ maxPrice }}/mo</span>{% endif %}
+                            {% if sort is defined and sort != 'prix_mensuel' %}<span class="badge bg-secondary ms-2">Sort: {{ sort }}</span>{% endif %}
+                            <span class="badge bg-secondary ms-2">{{ abonnements|length }} result(s)</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="text-center text-muted mb-3">
+                            <small><i class="fa fa-info-circle me-1"></i>Showing {{ abonnements|length }} available plan(s)</small>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- My Current Subscriptions -->
+            {% if app.user and app.user.abonnements|length > 0 %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fa fa-info-circle me-2"></i>
+                            <strong>Active Subscriptions:</strong> You have <strong>{{ app.user.abonnements|length }}</strong> active plan(s).
+                            You can add more plans or manage your subscriptions.
+                            <a href="{{ path('app_my_subscription') }}" class="alert-link">View All Plans</a>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- AI Subscription Recommendation -->
+            {% if app.user and recommendation.hasRecommendation %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card border-success shadow-sm">
+                            <div class="card-header bg-success text-white py-3">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-robot me-2"></i>AI Personalized Recommendation
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Recommendation Message -->
+                                    <div class="col-lg-8">
+                                        <div class="mb-3">
+                                            <h6 class="text-success"><i class="fa fa-lightbulb me-2"></i>Recommendation</h6>
+                                            <p class="mb-2">{{ recommendation.message }}</p>
+                                        </div>
+
+                                        <!-- Reasoning -->
+                                        <div class="mb-3">
+                                            <h6><i class="fa fa-info-circle me-2"></i>Why This Plan?</h6>
+                                            <p class="text-muted mb-0">{{ recommendation.recommendation.reasoning }}</p>
+                                        </div>
+
+                                        <!-- Spending Insights -->
+                                        <div class="alert alert-light">
+                                            <strong>Your Spending Profile:</strong>
+                                            <ul class="mb-2 mt-2">
+                                                <li><strong>Average Monthly Expenses:</strong> €{{ recommendation.stats.averageMonthly|number_format(2) }}</li>
+                                                <li><strong>Total Expenses (6 months):</strong> €{{ recommendation.stats.totalExpenses|number_format(2) }}</li>
+                                                <li><strong>Spending Trend:</strong> 
+                                                    <span class="badge {% if recommendation.stats.trend == 'increasing' %}bg-warning{% elseif recommendation.stats.trend == 'decreasing' %}bg-info{% else %}bg-secondary{% endif %}">
+                                                        {{ recommendation.stats.trend|capitalize }}
+                                                    </span>
+                                                </li>
+                                                {% if recommendation.stats.categoryBreakdown %}
+                                                    <li><strong>Top Spending Category:</strong> 
+                                                        {% set topCategory = recommendation.stats.categoryBreakdown|keys|first %}
+                                                        {% set topAmount = recommendation.stats.categoryBreakdown[topCategory] %}
+                                                        {{ topCategory }} (€{{ topAmount|number_format(2) }})
+                                                    </li>
+                                                {% endif %}
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <!-- Recommendation Card -->
+                                    <div class="col-lg-4">
+                                        <div class="card border-success h-100">
+                                            <div class="card-body text-center">
+                                                <h5 class="card-title text-success mb-3">
+                                                    {{ recommendation.recommendation.plan.typeAbonnement }}
+                                                </h5>
+                                                <div class="mb-3">
+                                                    <div class="display-6 text-success">
+                                                        €{{ recommendation.recommendation.plan.prixMensuel|number_format(2) }}
+                                                    </div>
+                                                    <small class="text-muted">/month</small>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <div class="progress mb-2" style="height: 20px;">
+                                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ recommendation.recommendation.matchScore }}%" aria-valuenow="{{ recommendation.recommendation.matchScore }}" aria-valuemin="0" aria-valuemax="100">
+                                                            {{ recommendation.recommendation.matchScore|round(0) }}%
+                                                        </div>
+                                                    </div>
+                                                    <small class="text-muted">Match Score</small>
+                                                </div>
+                                                <a href="{{ path('app_abonnement_detail', {id: recommendation.recommendation.plan.idAbonnement}) }}" class="btn btn-success w-100">
+                                                    <i class="fa fa-arrow-right me-2"></i>View Plan
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% elseif app.user and not recommendation.hasRecommendation %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fa fa-chart-line me-2"></i>
+                            <strong>No Recommendations Yet:</strong> {{ recommendation.message }}
+                            <a href="{{ path('app_depense_list') }}" class="alert-link">Start tracking expenses</a> to get personalized plan recommendations.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- My Custom Plans Section -->
+            {% if app.user and userCustomPlans|length > 0 %}
+                <div class="row mb-5">
+                    <div class="col-12">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <h3 class="mb-0">
+                                <i class="fa fa-star text-warning me-2"></i>My Custom Plans
+                            </h3>
+                            <span class="badge bg-warning text-dark">{{ userCustomPlans|length }} plan(s)</span>
+                        </div>
+                        
+                        <div class="row g-4">
+                            {% for customPlan in userCustomPlans %}
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="card h-100 shadow-sm border-0 subscription-card border-3 border-warning">
+                                        <!-- Plan Header -->
+                                        <div class="card-header bg-warning text-dark py-3">
+                                            <div class="d-flex align-items-center justify-content-between">
+                                                <h5 class="mb-0">{{ customPlan.typeAbonnement }}</h5>
+                                                <span class="badge bg-info">Custom</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Card Body -->
+                                        <div class="card-body">
+                                            <!-- Price -->
+                                            <div class="mb-4">
+                                                <div class="display-6 text-warning">
+                                                    €{{ customPlan.prixMensuel|number_format(2) }}
+                                                    <span class="fs-6 text-muted">/month</span>
+                                                </div>
+                                                <small class="text-muted">
+                                                    €{{ customPlan.prixAnnuel|number_format(2) }}/year
+                                                </small>
+                                            </div>
+
+                                            <!-- Description -->
+                                            {% if customPlan.description %}
+                                                <p class="text-muted small mb-3">{{ customPlan.description|slice(0, 100) }}{% if customPlan.description|length > 100 %}...{% endif %}</p>
+                                            {% endif %}
+
+                                            <!-- Duration -->
+                                            <div class="mb-3">
+                                                <span class="badge bg-light text-dark">{{ customPlan.duree }}</span>
+                                            </div>
+
+                                            <!-- View Details Button -->
+                                            <div class="d-grid gap-2">
+                                                <a href="{{ path('app_abonnement_detail', {'id': customPlan.idAbonnement}) }}" class="btn btn-warning btn-sm">
+                                                    <i class="fa fa-eye me-2"></i>View Details
+                                                </a>
+                                                {% if app.user %}
+                                                    <a href="{{ path('app_reclamation_new', {abonnement_id: customPlan.idAbonnement}) }}" 
+                                                       class="btn btn-outline-danger btn-sm">
+                                                        <i class="fa fa-exclamation-circle me-1"></i>Report Issue
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Subscription Plans -->
+            <div class="row g-4">
+                <!-- Custom Plan Card -->
+                {% if app.user %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-0 subscription-card border-2 border-warning">
+                            <!-- Plan Header -->
+                            <div class="card-header bg-warning text-dark py-3">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-cog me-2"></i>Custom Plan
+                                </h5>
+                            </div>
+
+                            <!-- Card Body -->
+                            <div class="card-body d-flex flex-column">
+                                <!-- Icon -->
+                                <div class="text-center mb-4">
+                                    <i class="fa fa-puzzle-piece" style="font-size: 3rem; color: #ffc107;"></i>
+                                </div>
+
+                                <!-- Description -->
+                                <p class="text-muted mb-4 flex-grow-1">
+                                    Create a subscription plan tailored specifically to your needs. Choose the features, pricing, and duration that work best for you.
+                                </p>
+
+                                <!-- Features -->
+                                <div class="mb-4">
+                                    <h6 class="mb-3">You Control:</h6>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2">
+                                            <i class="fa fa-check text-success me-2"></i>Plan Name & Description
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fa fa-check text-success me-2"></i>Monthly & Annual Pricing
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fa fa-check text-success me-2"></i>Subscription Duration
+                                        </li>
+                                        <li>
+                                            <i class="fa fa-check text-success me-2"></i>Included Features
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <!-- Button -->
+                                <div class="d-grid gap-2">
+                                    <a href="{{ path('app_abonnement_custom') }}" class="btn btn-warning btn-lg">
+                                        <i class="fa fa-star me-2"></i>Create Your Plan
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% for abonnement in abonnements %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm border-0 subscription-card">
+                            <!-- Plan Header -->
+                            <div class="card-header bg-primary text-white py-3">
+                                <h5 class="mb-0">{{ abonnement.typeAbonnement }}</h5>
+                            </div>
+
+                            <!-- Card Body -->
+                            <div class="card-body">
+                                <!-- Price -->
+                                <div class="mb-4">
+                                    <div class="display-6 text-primary">
+                                        ${{ abonnement.prixMensuel|number_format(2) }}
+                                        <span class="fs-6 text-muted">/month</span>
+                                    </div>
+                                    <small class="text-muted">
+                                        or ${{ abonnement.prixAnnuel|number_format(2) }}/year
+                                    </small>
+                                </div>
+
+                                <!-- Description -->
+                                {% if abonnement.description %}
+                                    <p class="text-muted mb-3">
+                                        {{ abonnement.description }}
+                                    </p>
+                                {% endif %}
+
+                                <!-- Duration -->
+                                <p class="mb-3">
+                                    <strong>Duration:</strong> {{ abonnement.duree }}
+                                </p>
+
+                                <!-- Features -->
+                                {% if abonnement.avantages %}
+                                    <h6 class="mb-3">Features:</h6>
+                                    <ul class="list-unstyled">
+                                        {% for avantage in abonnement.avantages|split('\n') %}
+                                            {% if avantage|trim %}
+                                                <li class="mb-2">
+                                                    <i class="fa fa-check text-success me-2"></i>
+                                                    {{ avantage|trim }}
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+
+                            <!-- Card Footer -->
+                            <div class="card-footer bg-light">
+                                <div class="d-grid gap-2">
+                                    {% if app.user and app.user.abonnements|length > 0 and app.user.abonnements.contains(abonnement) %}
+                                        <div class="d-flex gap-2">
+                                            <span class="badge bg-success flex-grow-1 text-center py-2">
+                                                <i class="fa fa-check me-2"></i>Active Plan
+                                            </span>
+                                            <a href="{{ path('app_abonnement_unsubscribe', {id: abonnement.idAbonnement}) }}" 
+                                               class="btn btn-sm btn-danger"
+                                               title="Remove subscription"
+                                               onclick="return confirm('Remove this subscription?')">
+                                                <i class="fa fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    {% elseif app.user and balanceInfoByPlan[abonnement.idAbonnement] %}
+                                        {% set balance = balanceInfoByPlan[abonnement.idAbonnement] %}
+                                        {% if not balance.hasBankAccount %}
+                                            <div class="alert alert-danger mb-2 p-2">
+                                                <small>
+                                                    <i class="fa fa-exclamation-circle me-1"></i>
+                                                    No bank account
+                                                </small>
+                                            </div>
+                                            <button class="btn btn-secondary btn-sm" disabled>
+                                                Add Plan
+                                            </button>
+                                        {% elseif not (balance.canAffordMonthly or balance.canAffordAnnual) %}
+                                            <div class="alert alert-danger mb-2 p-2">
+                                                <small>
+                                                    <i class="fa fa-exclamation-circle me-1"></i>
+                                                    Insufficient balance (${{'%.2f'|format(balance.totalBalance)}})
+                                                </small>
+                                            </div>
+                                            <button class="btn btn-secondary btn-sm" disabled>
+                                                Add Plan (Locked)
+                                            </button>
+                                        {% else %}
+                                            <a href="{{ path('app_abonnement_subscribe', {id: abonnement.idAbonnement}) }}" 
+                                               class="btn btn-primary">
+                                                Add Plan
+                                            </a>
+                                            <a href="{{ path('app_abonnement_detail', {id: abonnement.idAbonnement}) }}" 
+                                               class="btn btn-outline-secondary btn-sm">
+                                                View Details
+                                            </a>
+                                        {% endif %}
+                                    {% else %}
+                                        <a href="{{ path('app_abonnement_subscribe', {id: abonnement.idAbonnement}) }}" 
+                                           class="btn btn-primary">
+                                            Add Plan
+                                        </a>
+                                        <a href="{{ path('app_abonnement_detail', {id: abonnement.idAbonnement}) }}" 
+                                           class="btn btn-outline-secondary btn-sm">
+                                            View Details
+                                        </a>
+                                    {% endif %}
+                                    
+                                    <!-- Reclamation Button -->
+                                    {% if app.user %}
+                                        <a href="{{ path('app_reclamation_new', {abonnement_id: abonnement.idAbonnement}) }}" 
+                                           class="btn btn-outline-danger btn-sm w-100 mt-2">
+                                            <i class="fa fa-exclamation-circle me-1"></i>Report Issue
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- No Plans Available -->
+            {% if abonnements|length == 0 %}
+                <div class="row">
+                    <div class="col-12">
+                        {% if keyword or minPrice or maxPrice %}
+                            <div class="alert alert-warning text-center" role="alert">
+                                <i class="fa fa-search me-2"></i>
+                                <strong>No plans found</strong> matching your search criteria.
+                                <br>
+                                <small>Try adjusting your filters or <a href="{{ path('app_abonnement_list') }}" class="alert-link">view all plans</a></small>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning text-center" role="alert">
+                                <i class="fa fa-exclamation-triangle me-2"></i>
+                                No subscription plans available at the moment.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .subscriptions-container {
+        background: linear-gradient(135deg, #fff8e7 0%, #ffe8cc 100%);
+        min-height: 100vh;
+    }
+
+    .subscriptions-header {
+        background: white;
+        padding: 40px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Statistics Cards */
+    .stat-card {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 24px;
+    }
+
+    .stat-icon.total-subscribers {
+        background: #c8f1d8;
+        color: #27ae60;
+    }
+
+    .stat-icon.budget-friendly {
+        background: #ffeaa7;
+        color: #f39c12;
+    }
+
+    .stat-icon.premium-plans {
+        background: #dfe6e9;
+        color: #2c3e50;
+    }
+
+    .stat-icon.my-plans {
+        background: #b8def8;
+        color: #3498db;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1a3a52;
+        margin: 0;
+    }
+
+    .subscription-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .subscription-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .card-header:first-child {
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const keywordInput = document.getElementById('keyword');
+    const searchDropdown = document.getElementById('searchDropdown');
+    let debounceTimer;
+
+    // Handle input changes
+    keywordInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+
+        if (query.length === 0) {
+            searchDropdown.style.display = 'none';
+            return;
+        }
+
+        // Debounce the search
+        debounceTimer = setTimeout(function() {
+            performSearch(query);
+        }, 300);
+    });
+
+    // Perform the search via API
+    function performSearch(query) {
+        fetch(`/api/abonnement/search?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    searchDropdown.innerHTML = '<div class="list-group-item text-muted"><i class="fa fa-info-circle me-2"></i>No plans found starting with "' + escapeHtml(query) + '"</div>';
+                } else {
+                    searchDropdown.innerHTML = '';
+                    data.forEach(plan => {
+                        const item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'list-group-item list-group-item-action';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="mb-1"><i class="fa fa-${plan.type === 'custom' ? 'gear' : 'star'} me-2 text-warning"></i>${escapeHtml(plan.name)}</h6>
+                                    <p class="mb-1 small text-muted">${plan.description ? escapeHtml(plan.description) : 'No description'}</p>
+                                </div>
+                                <div class="text-end">
+                                    <strong>€${plan.price.toFixed(2)}</strong><br>
+                                    <small class="text-muted">€${plan.priceAnnual.toFixed(2)}/yr</small>
+                                </div>
+                            </div>
+                        `;
+                        item.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            keywordInput.value = plan.name;
+                            searchDropdown.style.display = 'none';
+                            // Optionally trigger form submission
+                            keywordInput.closest('form').submit();
+                        });
+                        searchDropdown.appendChild(item);
+                    });
+                }
+                searchDropdown.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                searchDropdown.innerHTML = '<div class="list-group-item text-danger"><i class="fa fa-exclamation-triangle me-2"></i>Error searching plans</div>';
+                searchDropdown.style.display = 'block';
+            });
+    }
+
+    // Hide dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target !== keywordInput && !searchDropdown.contains(e.target)) {
+            searchDropdown.style.display = 'none';
+        }
+    });
+
+    // Show dropdown again when input is focused and has value
+    keywordInput.addEventListener('focus', function() {
+        if (this.value.trim().length > 0) {
+            searchDropdown.style.display = 'block';
+        }
+    });
+
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+});
+</script>
+
+{% endblock %}

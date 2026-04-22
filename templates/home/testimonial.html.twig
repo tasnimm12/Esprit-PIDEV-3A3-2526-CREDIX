@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Testimonials - Credix{% endblock %}
+
+{% block content %}
+    <!-- Testimonial Start -->
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
+                <p class="d-inline-block border rounded text-primary fw-semi-bold py-1 px-3">Client Reviews</p>
+                <h1 class="display-5 mb-4">What Our Clients Say</h1>
+            </div>
+            <div class="owl-carousel testimonial-carousel wow fadeInUp" data-wow-delay="0.1s">
+                <div class="testimonial-item text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-4">
+                        <img class="img-fluid rounded-circle border border-2 border-primary" src="{{ asset('img/carousel-1.jpg') }}" style="width: 100px; height: 100px;">
+                    </div>
+                    <div class="testimonial-text text-center mb-5">
+                        <p class="mb-3">Excellent financial advisory services! Their team helped me grow my investment portfolio significantly.</p>
+                        <h4>Client 1</h4>
+                        <p>Happy Customer</p>
+                    </div>
+                </div>
+                <div class="testimonial-item text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-4">
+                        <img class="img-fluid rounded-circle border border-2 border-primary" src="{{ asset('img/carousel-2.jpg') }}" style="width: 100px; height: 100px;">
+                    </div>
+                    <div class="testimonial-text text-center mb-5">
+                        <p class="mb-3">Professional team with extensive experience. Highly recommended for anyone seeking financial guidance.</p>
+                        <h4>Client 2</h4>
+                        <p>Satisfied Client</p>
+                    </div>
+                </div>
+                <div class="testimonial-item text-center">
+                    <div class="d-flex align-items-center justify-content-center mb-4">
+                        <img class="img-fluid rounded-circle border border-2 border-primary" src="{{ asset('img/about.jpg') }}" style="width: 100px; height: 100px;">
+                    </div>
+                    <div class="testimonial-text text-center mb-5">
+                        <p class="mb-3">Great service and support. They truly care about their clients' financial success.</p>
+                        <h4>Client 3</h4>
+                        <p>Loyal Customer</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Testimonial End -->
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login - Credix{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-body p-5">
+                            <!-- Header -->
+                            <div class="text-center mb-4">
+                                <h2 class="display-6 mb-2">Welcome Back</h2>
+                                <p class="text-muted">Sign in to your Credix account</p>
+                            </div>
+
+                            <!-- Error Messages -->
+                            {% if error %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fa fa-exclamation-circle me-2"></i>
+                                    {{ error }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endif %}
+
+                            <!-- Login Form -->
+                            <form method="POST" action="{{ path('app_login') }}" class="needs-validation">
+                                <!-- Email -->
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" class="form-control form-control-lg" id="email" name="email" 
+                                           placeholder="Enter your email">
+                                    <small class="form-text text-muted">We'll never share your email with anyone else.</small>
+                                </div>
+
+                                <!-- Password -->
+                                <div class="mb-4">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input type="password" class="form-control form-control-lg" id="password" name="password" 
+                                           placeholder="Enter your password">
+                                </div>
+
+                                <!-- Remember Me & Forgot Password -->
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                                        <label class="form-check-label" for="remember">
+                                            Remember me
+                                        </label>
+                                    </div>
+                                    <a href="#" class="text-primary text-decoration-none">Forgot password?</a>
+                                </div>
+
+                                <!-- Login Button -->
+                                <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                                    <i class="fa fa-sign-in me-2"></i>Sign In
+                                </button>
+                            </form>
+
+                            <!-- Divider -->
+                            <div class="d-flex align-items-center mb-4">
+                                <hr class="flex-grow-1">
+                                <span class="mx-3 text-muted small">OR</span>
+                                <hr class="flex-grow-1">
+                            </div>
+
+                            <!-- Google Sign In -->
+                            <a href="{{ path('connect_google') }}" class="btn btn-outline-secondary btn-lg w-100 mb-3">
+                                <i class="fab fa-google me-2"></i>Continue with Google
+                            </a>
+
+                            <!-- Sign Up Link -->
+                            <div class="text-center">
+                                <p class="text-muted mb-0">Don't have an account? 
+                                    <a href="{{ path('app_signup') }}" class="text-primary fw-bold text-decoration-none">Create one now</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Info -->
+                    <div class="mt-4 text-center">
+                        <p class="text-muted small">
+                            <i class="fa fa-lock me-1"></i>Your login information is secure and encrypted
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

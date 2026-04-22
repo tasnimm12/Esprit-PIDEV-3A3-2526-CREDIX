@@ -1,0 +1,285 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}All Claims Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header with Add Button -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-exclamation-triangle"></i> Claims Management</h2>
+            <p class="text-muted">Manage all insurance claims from users</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('app_sinistre_admin_new') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> File New Claim
+            </a>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    {% if app.flashes %}
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ type === 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    {% endif %}
+
+    <!-- Filter Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Filter Claims</h5>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <!-- Search -->
+                <div class="col-md-3">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           placeholder="User name, email, description" 
+                           value="{{ filters.search|default('') }}">
+                    <small class="text-muted">Search by user name, email, or claim description</small>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="EN_ATTENTE" {% if filters.status == 'EN_ATTENTE' %}selected{% endif %}>Pending</option>
+                        <option value="ACCEPTE" {% if filters.status == 'ACCEPTE' %}selected{% endif %}>Accepted</option>
+                        <option value="REJETE" {% if filters.status == 'REJETE' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+
+                <!-- Date From (Incident) -->
+                <div class="col-md-2">
+                    <label for="date_from" class="form-label">Date From</label>
+                    <input type="date" class="form-control" id="date_from" name="date_from" 
+                           value="{{ filters.date_from|default('') }}">
+                </div>
+
+                <!-- Date To (Incident) -->
+                <div class="col-md-2">
+                    <label for="date_to" class="form-label">Date To</label>
+                    <input type="date" class="form-control" id="date_to" name="date_to" 
+                           value="{{ filters.date_to|default('') }}">
+                </div>
+
+                <!-- Sort -->
+                <div class="col-md-2">
+                    <label for="sort" class="form-label">Sort By</label>
+                    <select class="form-select" id="sort" name="sort">
+                        <option value="created_at" {% if filters.sort == 'created_at' %}selected{% endif %}>Date Filed</option>
+                        <option value="incident_date" {% if filters.sort == 'incident_date' %}selected{% endif %}>Incident Date</option>
+                        <option value="status" {% if filters.sort == 'status' %}selected{% endif %}>Status</option>
+                        <option value="user" {% if filters.sort == 'user' %}selected{% endif %}>User Name</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Filter
+                    </button>
+                    <a href="{{ path('app_sinistre_list') }}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Claims Table -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">All Claims 
+                <span class="badge bg-primary">
+                    {{ pagination.total|default(sinistres|length) }}
+                </span>
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if sinistres|length == 0 %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No claims found yet.
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>User</th>
+                                <th>Contract</th>
+                                <th>Date Filed</th>
+                                <th>Date of Incident</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sinistre in sinistres %}
+                                <tr>
+                                    <td>
+                                        <strong>#{{ sinistre.id }}</strong>
+                                    </td>
+                                    <td>
+                                        <div>{{ sinistre.utilisateur.prenom }} {{ sinistre.utilisateur.nom }}</div>
+                                        <small class="text-muted">{{ sinistre.utilisateur.email }}</small>
+                                    </td>
+                                    <td>
+                                        <div>{{ sinistre.contrat.id }}</div>
+                                        <small class="text-muted">
+                                            {% if sinistre.contrat.assurance %}
+                                                {{ sinistre.contrat.assurance.typeAssurance }}
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        {{ sinistre.createdAt|date('d/m/Y H:i') }}
+                                    </td>
+                                    <td>
+                                        {{ sinistre.dateSinistre|date('d/m/Y') }}
+                                    </td>
+                                    <td>
+                                        {% if sinistre.statut == 'EN_ATTENTE' %}
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="fas fa-clock"></i> Pending
+                                            </span>
+                                        {% elseif sinistre.statut == 'ACCEPTE' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check"></i> Accepted
+                                            </span>
+                                        {% elseif sinistre.statut == 'REJETE' %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times"></i> Rejected
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group" aria-label="Actions">
+                                            <a href="{{ path('app_sinistre_show', {'id': sinistre.id}) }}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="View details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if sinistre.statut == 'EN_ATTENTE' %}
+                                                <a href="{{ path('app_sinistre_edit', {'id': sinistre.id}) }}" 
+                                                   class="btn btn-sm btn-outline-warning" 
+                                                   title="Edit claim">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <form method="POST" 
+                                                      action="{{ path('app_sinistre_delete', {'id': sinistre.id}) }}" 
+                                                      style="display: inline;" 
+                                                      onsubmit="return confirm('Are you sure?');">
+                                                    <button type="submit" 
+                                                            class="btn btn-sm btn-outline-danger" 
+                                                            title="Delete claim">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if pagination.totalPages > 1 %}
+        <div class="card-footer bg-light d-flex justify-content-between align-items-center">
+            <div class="text-muted small">
+                Showing {{ sinistres|length }} of {{ pagination.total }} results 
+                (Page {{ pagination.page }} of {{ pagination.totalPages }})
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if pagination.page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('app_sinistre_list', app.request.query.all|merge({'page': 1})) }}">First</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('app_sinistre_list', app.request.query.all|merge({'page': pagination.page - 1})) }}">Previous</a>
+                        </li>
+                    {% endif %}
+
+                    {% for p in range(1, pagination.totalPages) %}
+                        {% if p >= pagination.page - 2 and p <= pagination.page + 2 %}
+                            <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                                <a class="page-link" href="{{ path('app_sinistre_list', app.request.query.all|merge({'page': p})) }}">{{ p }}</a>
+                            </li>
+                        {% elseif p == pagination.page - 3 or p == pagination.page + 3 %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.page < pagination.totalPages %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('app_sinistre_list', app.request.query.all|merge({'page': pagination.page + 1})) }}">Next</a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="{{ path('app_sinistre_list', app.request.query.all|merge({'page': pagination.totalPages})) }}">Last</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Statistics -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card bg-warning bg-opacity-10 border-warning">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Pending Claims</h6>
+                    <h3 class="text-warning">
+                        {% set pendingCount = sinistres|filter(s => s.statut == 'EN_ATTENTE')|length %}
+                        {{ pendingCount }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success bg-opacity-10 border-success">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Accepted Claims</h6>
+                    <h3 class="text-success">
+                        {% set acceptedCount = sinistres|filter(s => s.statut == 'ACCEPTE')|length %}
+                        {{ acceptedCount }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger bg-opacity-10 border-danger">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Rejected Claims</h6>
+                    <h3 class="text-danger">
+                        {% set rejectedCount = sinistres|filter(s => s.statut == 'REJETE')|length %}
+                        {{ rejectedCount }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info bg-opacity-10 border-info">
+                <div class="card-body text-center">
+                    <h6 class="card-title">Total Claims</h6>
+                    <h3 class="text-info">{{ sinistres|length }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

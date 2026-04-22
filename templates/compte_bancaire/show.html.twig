@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails du Compte Bancaire{% endblock %}
+
+{% block content %}
+<div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-8 mx-auto">
+                <h2 class="mb-1">
+                    <i class="fa fa-university me-2"></i>Détails du Compte
+                </h2>
+                <p class="text-muted">{{ compte.typeCompte }}</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">{{ compte.typeCompte }}</h5>
+                            <div>
+                                {% if compte.getActif %}
+                                    <span class="badge bg-success">Actif</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactif</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Account Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-2">Numéro de Compte</h6>
+                                <p class="h5">
+                                    <code>{{ compte.getNumeroCompte }}</code>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-2">Titulaire</h6>
+                                <p class="h5">{{ compte.getTitulaire }}</p>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Balance Section -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-2">Solde</h6>
+                                <p class="display-6 text-primary mb-0">
+                                    {{ compte.getSolde|number_format(2) }}
+                                </p>
+                                <small class="text-muted">{{ compte.getDevise }}</small>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-2">Devise</h6>
+                                <p class="h5">{{ compte.getDevise }}</p>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-2">Email</h6>
+                                <p class="mb-0">
+                                    {% if compte.getEmail %}
+                                        <a href="mailto:{{ compte.getEmail }}">{{ compte.getEmail }}</a>
+                                    {% else %}
+                                        <span class="text-muted">Non fourni</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-2">Téléphone</h6>
+                                <p class="mb-0">
+                                    {% if compte.getTelephone %}
+                                        {{ compte.getTelephone }}
+                                    {% else %}
+                                        <span class="text-muted">Non fourni</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <!-- Date Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h6 class="text-muted mb-2">Date de Création</h6>
+                                <p class="mb-0">
+                                    {% if compte.getDateCreation %}
+                                        {{ compte.getDateCreation|date('d/m/Y') }}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Actions -->
+                        <div class="d-grid gap-2">
+                            <a href="{{ path('app_compte_bancaire_edit', {id: compte.getId}) }}" class="btn btn-primary">
+                                <i class="fa fa-edit me-2"></i>Modifier les Informations
+                            </a>
+                            <a href="{{ path('app_compte_bancaire_delete', {id: compte.getId}) }}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce compte?')">
+                                <i class="fa fa-trash me-2"></i>Supprimer ce Compte
+                            </a>
+                            <a href="{{ path('app_compte_bancaire_index') }}" class="btn btn-outline-secondary">
+                                <i class="fa fa-arrow-left me-2"></i>Retour
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

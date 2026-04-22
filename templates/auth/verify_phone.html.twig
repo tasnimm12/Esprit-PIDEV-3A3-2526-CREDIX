@@ -1,0 +1,115 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Verify Phone Number - Credix{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-6 col-lg-5">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-body p-5">
+                            <!-- Header -->
+                            <div class="text-center mb-4">
+                                <div class="mb-3">
+                                    <i class="fab fa-whatsapp fa-3x" style="color: #25D366;"></i>
+                                </div>
+                                <h2 class="display-6 mb-2">Verify Your Account</h2>
+                                <p class="text-muted">Enter the 6-digit code sent to your WhatsApp</p>
+                            </div>
+
+                            <!-- Phone Display -->
+                            <div class="alert alert-info" role="alert">
+                                <i class="fab fa-whatsapp me-2"></i>
+                                Code sent via WhatsApp to: <strong>{{ user.telephone }}</strong>
+                            </div>
+
+                            <!-- Error Messages -->
+                            {% if errors is not empty %}
+                                {% for error in errors %}
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fa fa-exclamation-circle me-2"></i>
+                                        {{ error }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                            <!-- Flash Messages -->
+                            {% for message in app.flashes('error') %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fa fa-exclamation-circle me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+
+                            <!-- Verification Code Form -->
+                            <form method="POST" action="{{ path('app_verify_phone') }}">
+                                <!-- Verification Code Input -->
+                                <div class="mb-4">
+                                    <label for="verification_code" class="form-label fw-bold">Verification Code <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-lg text-center" 
+                                           id="verification_code" name="verification_code" 
+                                           placeholder="000000" inputmode="numeric" maxlength="6">
+                                    <small class="form-text text-muted d-block mt-2">Enter the 6-digit code</small>
+                                </div>
+
+                                <!-- Submit Button -->
+                                <div class="d-grid gap-2 mb-3">
+                                    <button type="submit" class="btn btn-primary btn-lg fw-bold">
+                                        <i class="fa fa-check-circle me-2"></i>Verify Code
+                                    </button>
+                                </div>
+
+                                <!-- Resend Code Link -->
+                                <div class="text-center">
+                                    <small class="text-muted">
+                                        Didn't receive the code? 
+                                        <a href="{{ path('app_resend_verification_code') }}" class="text-primary text-decoration-none fw-bold">Resend code</a>
+                                        or <a href="{{ path('app_signup') }}" class="text-primary text-decoration-none fw-bold">sign up again</a>
+                                    </small>
+                                </div>
+                            </form>
+
+                            <!-- Info -->
+                            <div class="mt-4 pt-3 border-top">
+                                <small class="text-muted">
+                                    <i class="fa fa-shield-alt me-2 text-success"></i>
+                                    Your code will expire in 15 minutes for security reasons.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const codeInput = document.getElementById('verification_code');
+            // Allow auto-focus on page load
+            codeInput.focus();
+            
+            // Only allow digits
+            codeInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+        });
+    </script>
+
+    <style>
+        #verification_code {
+            letter-spacing: 10px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #verification_code::placeholder {
+            letter-spacing: 5px;
+            opacity: 0.5;
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,335 @@
+{# Display damage analysis for a claim #}
+<div id="damage-analysis"></div>
+{% if sinistre.damageAnalyses|length > 0 %}
+    <div class="card border-primary mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0">
+                    <i class="fa fa-robot me-2"></i>Advanced AI Damage Analysis
+                    <small class="ms-2">{{ sinistre.damageAnalyses|length }} image{{ sinistre.damageAnalyses|length != 1 ? 's' : '' }} analyzed</small>
+                </h5>
+            </div>
+            <div>
+                <span class="badge bg-light text-dark">v2.0 - Hybrid Approach</span>
+            </div>
+        </div>
+        <div class="card-body">
+            {% for analysis in sinistre.damageAnalyses %}
+                <div class="damage-analysis-item mb-4 pb-4 border-bottom" data-analysis-id="{{ analysis.id }}">
+                    <!-- Evidence Reference -->
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            <small class="text-muted">
+                                <i class="fa fa-image me-1"></i>
+                                Evidence: <strong>{{ analysis.preuve.nomFichier }}</strong>
+                            </small>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <small class="text-muted">
+                                <i class="fa fa-calendar me-1"></i>
+                                Analyzed: <strong>{{ analysis.analyzedAt|date('d/m/Y H:i') }}</strong>
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Severity Level with Enhanced Styling -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            {% if analysis.severity == 'MAJOR' %}
+                                <span class="badge bg-danger p-3 fs-6">
+                                    <i class="fa fa-exclamation-triangle me-2"></i>
+                                    MAJOR DAMAGE
+                                </span>
+                                <small class="d-block text-muted mt-2">Significant structural or impact damage identified. Professional assessment recommended.</small>
+                            {% elseif analysis.severity == 'MEDIUM' %}
+                                <span class="badge bg-warning p-3 fs-6">
+                                    <i class="fa fa-exclamation-circle me-2"></i>
+                                    MEDIUM DAMAGE
+                                </span>
+                                <small class="d-block text-muted mt-2">Moderate damage requiring professional repair. Component replacement may be necessary.</small>
+                            {% else %}
+                                <span class="badge bg-success p-3 fs-6">
+                                    <i class="fa fa-check-circle me-2"></i>
+                                    MINOR DAMAGE
+                                </span>
+                                <small class="d-block text-muted mt-2">Limited damage, mostly cosmetic. Paint or minor dent repair likely sufficient.</small>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Damage Type -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <h6 class="text-secondary">Damage Classification</h6>
+                            <p class="mb-0">
+                                <span class="badge bg-secondary">{{ analysis.damageType }}</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Analysis Details in Grid -->
+                    <div class="row mb-4 g-3">
+                        <!-- Affected Area -->
+                        <div class="col-md-4 col-lg-3">
+                            <div class="analysis-stat p-3 bg-light rounded">
+                                <small class="text-muted d-block mb-2">
+                                    <i class="fa fa-ruler me-1"></i>Affected Area
+                                </small>
+                                <div class="display-5 text-primary">{{ analysis.affectedAreaPercentage }}%</div>
+                                <div class="progress mt-2" style="height: 8px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ analysis.affectedAreaPercentage }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estimated Cost -->
+                        <div class="col-md-4 col-lg-3">
+                            <div class="analysis-stat p-3 bg-light rounded">
+                                <small class="text-muted d-block mb-2">
+                                    <i class="fa fa-dollar-sign me-1"></i>Estimated Cost
+                                </small>
+                                {% if analysis.estimatedCost %}
+                                    <div class="display-5 text-success">${{ analysis.estimatedCost|number_format(0) }}</div>
+                                    <small class="text-muted">USD</small>
+                                {% else %}
+                                    <div class="text-muted small">Not available</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- AI Model -->
+                        <div class="col-md-4 col-lg-3">
+                            <div class="analysis-stat p-3 bg-light rounded">
+                                <small class="text-muted d-block mb-2">
+                                    <i class="fa fa-microchip me-1"></i>Analysis Engine
+                                </small>
+                                <small class="d-block">{{ analysis.aiModel }}</small>
+                                <small class="text-muted">{{ analysis.aiModel starts with 'Gemini' ? 'Gemini vision + rules pipeline' : 'Local vision fallback + rules pipeline' }}</small>
+                            </div>
+                        </div>
+
+                        <!-- Severity Badge -->
+                        <div class="col-md-4 col-lg-3">
+                            <div class="analysis-stat p-3 bg-light rounded">
+                                <small class="text-muted d-block mb-2">
+                                    <i class="fa fa-level-up me-1"></i>Severity
+                                </small>
+                                {% if analysis.severity == 'MAJOR' %}
+                                    <span class="badge bg-danger">MAJOR</span>
+                                {% elseif analysis.severity == 'MEDIUM' %}
+                                    <span class="badge bg-warning">MEDIUM</span>
+                                {% else %}
+                                    <span class="badge bg-success">MINOR</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Analysis Report -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <h6 class="card-title mb-3">
+                                        <i class="fa fa-file-alt me-2"></i>Comprehensive Analysis Report
+                                    </h6>
+                                    <div class="analysis-report" style="white-space: pre-wrap; font-family: monospace; font-size: 0.85rem;">{{ analysis.analysisDetails }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if not loop.last %}
+                    <div class="mb-4"></div>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Multi-Image Analysis Summary -->
+            {% if sinistre.damageAnalyses|length > 1 %}
+                <div class="card border-info mt-4">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i class="fa fa-images me-2"></i>Multi-Image Analysis Summary
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Total Images Analyzed:</strong> {{ sinistre.damageAnalyses|length }}</p>
+                                {% set majorCount = sinistre.damageAnalyses|filter(a => a.severity == 'MAJOR')|length %}
+                                {% set mediumCount = sinistre.damageAnalyses|filter(a => a.severity == 'MEDIUM')|length %}
+                                {% set minorCount = sinistre.damageAnalyses|filter(a => a.severity == 'MINOR')|length %}
+                                <p><strong>MAJOR Damage:</strong> {{ majorCount }} image{{ majorCount != 1 ? 's' : '' }}</p>
+                                <p><strong>MEDIUM Damage:</strong> {{ mediumCount }} image{{ mediumCount != 1 ? 's' : '' }}</p>
+                                <p><strong>MINOR Damage:</strong> {{ minorCount }} image{{ minorCount != 1 ? 's' : '' }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                {% set totalCost = sinistre.damageAnalyses|reduce((carry, a) => carry + a.estimatedCost, 0) %}
+                                <p><strong>Combined Estimated Cost:</strong> <span class="text-success fs-5">${{ totalCost|number_format(0) }}</span></p>
+                                {% set avgArea = sinistre.damageAnalyses|reduce((carry, a) => carry + a.affectedAreaPercentage, 0) / sinistre.damageAnalyses|length %}
+                                <p><strong>Average Affected Area:</strong> {{ avgArea|round(1) }}%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="fa fa-info-circle me-2"></i>
+        <strong>No AI analysis yet.</strong> Upload image evidence to get automatic advanced damage analysis. PDF and document uploads do not produce image analysis.
+    </div>
+{% endif %}
+
+{# Insurance Coverage Analysis Section #}
+{% if coverageAnalysis is defined and coverageAnalysis.hasDamageAnalysis %}
+    <div class="card border-success mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+                <i class="fa fa-shield-alt me-2"></i>Insurance Coverage Analysis
+            </h5>
+        </div>
+        <div class="card-body">
+            {% if coverageAnalysis.hasInsurance %}
+                <!-- Coverage Status Badge -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        {% if coverageAnalysis.coverageStatus == 'fully_covered' %}
+                            <div class="alert alert-success">
+                                <i class="fa fa-check-circle me-2"></i>
+                                <strong>Fully Covered!</strong> {{ coverageAnalysis.message }}
+                            </div>
+                        {% elseif coverageAnalysis.coverageStatus == 'partially_covered' %}
+                            <div class="alert alert-warning">
+                                <i class="fa fa-exclamation-triangle me-2"></i>
+                                <strong>Partially Covered.</strong> {{ coverageAnalysis.message }}
+                            </div>
+                        {% else %}
+                            <div class="alert alert-danger">
+                                <i class="fa fa-times-circle me-2"></i>
+                                <strong>Not Covered.</strong> {{ coverageAnalysis.message }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Coverage Breakdown Grid -->
+                {% if coverageAnalysis.coverageDetails %}
+                    <div class="row">
+                        <!-- Estimated Damage Cost -->
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="coverage-stat">
+                                <small class="text-muted d-block mb-1">Estimated Damage</small>
+                                <div class="display-6 text-danger">€{{ coverageAnalysis.coverageDetails.estimatedCost|number_format(2, '.', ',') }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Deductible -->
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="coverage-stat">
+                                <small class="text-muted d-block mb-1">Deductible</small>
+                                <div class="display-6 text-warning">€{{ coverageAnalysis.coverageDetails.deductible|number_format(2, '.', ',') }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Amount Covered -->
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="coverage-stat">
+                                <small class="text-muted d-block mb-1">Amount Covered</small>
+                                <div class="display-6 text-success">€{{ coverageAnalysis.coverageDetails.amountCovered|number_format(2, '.', ',') }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Your Responsibility -->
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="coverage-stat">
+                                <small class="text-muted d-block mb-1">Your Responsibility</small>
+                                <div class="display-6 text-secondary">€{{ coverageAnalysis.coverageDetails.shortfall|number_format(2, '.', ',') }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coverage Details Table -->
+                    <div class="table-responsive mt-4">
+                        <table class="table table-sm table-striped">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Coverage Limit:</strong></td>
+                                    <td class="text-end">€{{ coverageAnalysis.coverageDetails.coverageLimit|number_format(2, '.', ',') }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Annual Ceiling:</strong></td>
+                                    <td class="text-end">€{{ coverageAnalysis.coverageDetails.annualCeiling|number_format(2, '.', ',') }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Reimbursement Rate:</strong></td>
+                                    <td class="text-end">{{ coverageAnalysis.coverageDetails.reimbursementRate }}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Calculation Steps -->
+                    <div class="card bg-light mt-4">
+                        <div class="card-body small">
+                            <h6 class="card-title mb-3">
+                                <i class="fa fa-calculator me-2"></i>Calculation Breakdown
+                            </h6>
+                            <ol class="mb-0">
+                                <li>Damage Cost: €{{ coverageAnalysis.coverageDetails.estimatedCost|number_format(2, '.', ',') }}</li>
+                                <li>Minus Deductible: -€{{ coverageAnalysis.coverageDetails.deductible|number_format(2, '.', ',') }}</li>
+                                <li>After Deductible: €{{ (coverageAnalysis.coverageDetails.estimatedCost - coverageAnalysis.coverageDetails.deductible)|number_format(2, '.', ',') }}</li>
+                                <li>Apply Reimbursement Rate ({{ coverageAnalysis.coverageDetails.reimbursementRate }}%): €{{ ((coverageAnalysis.coverageDetails.estimatedCost - coverageAnalysis.coverageDetails.deductible) * (coverageAnalysis.coverageDetails.reimbursementRate / 100))|number_format(2, '.', ',') }}</li>
+                                <li><strong>Final Amount Covered (capped at ceiling): €{{ coverageAnalysis.coverageDetails.amountCovered|number_format(2, '.', ',') }}</strong></li>
+                            </ol>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fa fa-info-circle me-2"></i>
+                    No active insurance contract found for this claim. Coverage analysis unavailable.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endif %}
+
+<style>
+    .damage-analysis-item {
+        animation: slideIn 0.3s ease-in-out;
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .analysis-stat {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #0d6efd;
+    }
+
+    .coverage-stat {
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 6px;
+        border-left: 4px solid #198754;
+    }
+
+    .analysis-stat .display-6,
+    .coverage-stat .display-6 {
+        font-size: 1.8rem;
+        margin: 0;
+    }
+</style>

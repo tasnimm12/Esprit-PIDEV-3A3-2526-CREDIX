@@ -1,0 +1,135 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Remboursements - PIDEV{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5 pb-5">
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="mb-4">My Remboursements</h1>
+
+            {% if app.flashes %}
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+
+            <!-- Statistics Cards -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Total Remboursements</p>
+                            <h3 class="mb-0 text-primary">{{ remboursements|length }}</h3>
+                            <small class="text-muted d-block mt-2">
+                                <span class="badge bg-warning">Pending: {{ pendingCount }}</span>
+                                <span class="badge bg-success">Completed: {{ completedCount }}</span>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Total Amount</p>
+                            <h3 class="mb-0 text-info">${{ totalMontant|number_format(2, '.', ',') }}</h3>
+                            <small class="text-muted d-block mt-2">All remboursements</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Cashback Earned</p>
+                            <h3 class="mb-0 text-success">${{ totalCashback|number_format(2, '.', ',') }}</h3>
+                            <small class="text-muted d-block mt-2">Subscription benefits</small>
+                        </div>
+                    </div>
+                </div>
+
+                {% if userAbonnement %}
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <p class="text-muted mb-1">Your Subscription</p>
+                            <h3 class="mb-0 text-primary">{{ userAbonnement.getTypeAbonnement() }}</h3>
+                            <small class="text-muted d-block mt-2">
+                                Cashback: 
+                                {% if userAbonnement.getReductionPourcentage() %}
+                                    {{ userAbonnement.getReductionPourcentage() }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if remboursements is empty %}
+                <div class="alert alert-info">
+                    <strong>No remboursements found.</strong> Your credit remboursements will appear here once you have active credits.
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Cashback</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for remboursement in remboursements %}
+                                <tr>
+                                    <td>{{ remboursement.getDateRemboursement()|date('d/m/Y') }}</td>
+                                    <td>${{ remboursement.getMontant()|number_format(2, '.', ',') }}</td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ remboursement.getTypeRemboursement() }}</span>
+                                    </td>
+                                    <td>
+                                        {% set statusClass = remboursement.getStatut() == 'COMPLÈTE' ? 'success' : (remboursement.getStatut() == 'EN_ATTENTE' ? 'warning' : 'secondary') %}
+                                        <span class="badge bg-{{ statusClass }}">{{ remboursement.getStatut() }}</span>
+                                    </td>
+                                    <td>
+                                        {% if remboursement.getMontantCashback() %}
+                                            <span class="text-success font-weight-bold">
+                                                +${{ remboursement.getMontantCashback()|number_format(2, '.', ',') }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{{ path('app_remboursement_view', {id: remboursement.getIdRemboursement()}) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+</style>
+{% endblock %}

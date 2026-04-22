@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Insurance Contract</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .content {
+            margin: 20px 0;
+        }
+        
+        .section {
+            margin: 30px 0;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            background-color: #f0f0f0;
+            padding: 10px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #007bff;
+            border-left: 5px solid #007bff;
+            margin-bottom: 15px;
+        }
+        
+        .section-content {
+            padding: 15px;
+            border: 1px solid #ddd;
+            background-color: #fafafa;
+        }
+        
+        .row {
+            display: table;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .col {
+            display: table-cell;
+            width: 50%;
+            padding: 8px;
+            vertical-align: top;
+        }
+        
+        .col.full {
+            width: 100%;
+        }
+        
+        .label {
+            font-weight: bold;
+            color: #007bff;
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+        
+        .value {
+            color: #333;
+            font-size: 13px;
+            padding: 5px;
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 3px;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 11px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .badge-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        
+        table th {
+            background-color: #e9ecef;
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 12px;
+            border: 1px solid #dee2e6;
+        }
+        
+        table td {
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            font-size: 12px;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>Insurance Contract</h1>
+        <p>Professional Insurance Agreement Document</p>
+    </div>
+
+    <div class="content">
+        <!-- Contract Information -->
+        <div class="section">
+            <div class="section-title">Contract Information</div>
+            <div class="section-content">
+                <div class="badge badge-success">{{ contract.statut }}</div>
+                
+                <div class="row">
+                    <div class="col">
+                        <div class="label">Contract Number</div>
+                        <div class="value">{{ contract.numeroContrat }}</div>
+                    </div>
+                    <div class="col">
+                        <div class="label">Contract Status</div>
+                        <div class="value">{{ contract.statut }}</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <div class="label">Signature Date</div>
+                        <div class="value">{% if contract.dateSignature %}{{ contract.dateSignature|date('F d, Y') }}{% else %}N/A{% endif %}</div>
+                    </div>
+                    <div class="col">
+                        <div class="label">End Date</div>
+                        <div class="value">{% if contract.dateFinContrat %}{{ contract.dateFinContrat|date('F d, Y') }}{% else %}N/A{% endif %}</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <div class="label">Contract Duration</div>
+                        <div class="value">{% if contract.dureeContrat %}{{ contract.dureeContrat }} months{% else %}N/A{% endif %}</div>
+                    </div>
+                    <div class="col">
+                        <div class="label">Document Reference</div>
+                        <div class="value">{{ contract.documentContrat|default('N/A') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Policyholder Information -->
+        <div class="section">
+            <div class="section-title">Policyholder Information</div>
+            <div class="section-content">
+                {% if contract.utilisateur %}
+                <div class="row">
+                    <div class="col">
+                        <div class="label">Full Name</div>
+                        <div class="value">{{ contract.utilisateur.prenom }} {{ contract.utilisateur.nom }}</div>
+                    </div>
+                    <div class="col">
+                        <div class="label">Email</div>
+                        <div class="value">{{ contract.utilisateur.email }}</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <div class="label">Phone</div>
+                        <div class="value">{{ contract.utilisateur.telephone|default('N/A') }}</div>
+                    </div>
+                    <div class="col">
+                        <div class="label">Date of Birth</div>
+                        <div class="value">{% if contract.utilisateur.dateNaissance %}{{ contract.utilisateur.dateNaissance|date('F d, Y') }}{% else %}N/A{% endif %}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Insurance Details -->
+        <div class="section">
+            <div class="section-title">Insurance Coverage Details</div>
+            <div class="section-content">
+                {% if contract.assurance %}
+                <div class="row">
+                    <div class="col">
+                        <div class="label">Insurance Company</div>
+                        <div class="value">{{ contract.assurance.compagnie|default('N/A') }}</div>
+                    </div>
+                    <div class="col">
+                        <div class="label">Insurance Type</div>
+                        <div class="value">{{ contract.assurance.typeAssurance|default('N/A') }}</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <div class="label">Policy Number</div>
+                        <div class="value">{{ contract.assurance.numeroPolice|default('N/A') }}</div>
+                    </div>
+                    <div class="col">
+                        <div class="label">Insurance Status</div>
+                        <div class="value">{{ contract.assurance.statut|default('N/A') }}</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="row">
+                    <div class="col">
+                        <div class="label">Annual Ceiling</div>
+                        <div class="value">{% if contract.plafondAnnuel %}${{ contract.plafondAnnuel }}{% else %}N/A{% endif %}</div>
+                    </div>
+                    <div class="col">
+                        <div class="label">Reimbursement Rate</div>
+                        <div class="value">{% if contract.tauxRemboursement %}{{ contract.tauxRemboursement }}%{% else %}N/A{% endif %}</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <div class="label">Waiting Period (Days)</div>
+                        <div class="value">{{ contract.delaiCarence|default('N/A') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Special Conditions -->
+        {% if contract.conditionsParticulieres %}
+        <div class="section">
+            <div class="section-title">Special Conditions</div>
+            <div class="section-content">
+                <div class="row col-full">
+                    <div class="col full">
+                        <div class="value" style="white-space: pre-wrap;">{{ contract.conditionsParticulieres }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Exclusions -->
+        {% if contract.exclusions %}
+        <div class="section">
+            <div class="section-title">Exclusions</div>
+            <div class="section-content">
+                <div class="row col-full">
+                    <div class="col full">
+                        <div class="value" style="white-space: pre-wrap;">{{ contract.exclusions }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Beneficiary Information -->
+        {% if contract.clauseBeneficiaire %}
+        <div class="section">
+            <div class="section-title">Beneficiary Information</div>
+            <div class="section-content">
+                <div class="row col-full">
+                    <div class="col full">
+                        <div class="value" style="white-space: pre-wrap;">{{ contract.clauseBeneficiaire }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Amendments -->
+        {% if contract.amendements %}
+        <div class="section">
+            <div class="section-title">Amendments & Modifications</div>
+            <div class="section-content">
+                <div class="row col-full">
+                    <div class="col full">
+                        <div class="value" style="white-space: pre-wrap;">{{ contract.amendements }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Additional Information -->
+        <div class="section">
+            <div class="section-title">Additional Information</div>
+            <div class="section-content">
+                <div class="row">
+                    <div class="col">
+                        <div class="label">Assigned Advisor</div>
+                        <div class="value">{{ contract.conseillerAttribue|default('N/A') }}</div>
+                    </div>
+                    <div class="col">
+                        <div class="label">Document Generated</div>
+                        <div class="value">{{ generateDate|date('F d, Y H:i') }}</div>
+                    </div>
+                </div>
+
+                {% if contract.contacts %}
+                <div class="row col-full">
+                    <div class="col full">
+                        <div class="label">Contact Information</div>
+                        <div class="value" style="white-space: pre-wrap;">{{ contract.contacts }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>IMPORTANT:</strong> This is an official contract document. Keep this copy for your records. In case of any questions or disputes, please contact your assigned advisor.</p>
+        <p>&copy; 2026 Insurance Management System. All rights reserved.</p>
+        <p style="margin-top: 10px; font-size: 10px; color: #999;">
+            Document Generated: {{ generateDate|date('Y-m-d H:i:s') }}
+        </p>
+    </div>
+</body>
+</html>

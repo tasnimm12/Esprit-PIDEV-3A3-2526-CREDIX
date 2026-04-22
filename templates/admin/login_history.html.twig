@@ -1,0 +1,61 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Login Logs - Credix{% endblock %}
+
+{% block breadcrumb_current %}Login Logs{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-0">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="display-6 mb-2">Login Logs</h1>
+                        <p class="text-muted mb-0">Recent successful sign-ins across the platform.</p>
+                    </div>
+                    <div class="badge bg-primary fs-6">{{ logs|length }} entries</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-0">
+                {% if logs|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="px-4 py-3">User ID</th>
+                                    <th class="py-3">Email</th>
+                                    <th class="py-3">Role</th>
+                                    <th class="py-3">Login Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in logs %}
+                                    <tr>
+                                        <td class="px-4">
+                                            <span class="badge bg-secondary">#{{ log.userId ?? 'N/A' }}</span>
+                                        </td>
+                                        <td>{{ log.email ?? 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge {% if (log.role|lower) == 'admin' %}bg-danger{% else %}bg-info text-dark{% endif %}">
+                                                {{ log.role ?? 'N/A' }}
+                                            </span>
+                                        </td>
+                                        <td>{{ log.loginAt ? log.loginAt|date('Y-m-d H:i:s') : 'N/A' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-5 text-center text-muted">
+                        <i class="fas fa-history mb-3" style="font-size: 2rem;"></i>
+                        <p class="mb-0">No login logs recorded yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

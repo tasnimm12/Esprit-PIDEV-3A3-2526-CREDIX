@@ -1,0 +1,170 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ assurance.typeAssurance }} Policy - Credix{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 offset-lg-2">
+                    <div class="border rounded p-4">
+                        <div class="row mb-4 align-items-center">
+                            <div class="col-lg-8">
+                                <h2 class="display-6">{{ assurance.compagnie ?? 'Insurance Policy' }}</h2>
+                                <p class="text-muted">Policy Details</p>
+                            </div>
+                            <div class="col-lg-4 text-end d-flex gap-2 justify-content-end">
+                                {% if app.user and app.user.role == 'admin' %}
+                                    <a href="{{ path('app_assurance_edit', { id: assurance.id }) }}" class="btn btn-warning">
+                                        <i class="fa fa-edit me-2"></i>Edit
+                                    </a>
+                                {% endif %}
+                                <a href="{{ path('app_assurance_list') }}" class="btn btn-secondary">
+                                    <i class="fa fa-arrow-left me-2"></i>Back
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Insurance Type</label>
+                                <p>
+                                    <span class="badge bg-info">{{ assurance.typeAssurance ?? 'N/A' }}</span>
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Status</label>
+                                <p>
+                                    {% if assurance.statut == 'ACTIF' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">{{ assurance.statut ?? 'Inactive' }}</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Policy Number</label>
+                                <p>{{ assurance.numeroPolice ?? 'N/A' }}</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Insurance Company</label>
+                                <p>{{ assurance.compagnie ?? 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Coverage Amount</label>
+                                <p class="fs-5">
+                                    {% if assurance.montantCouverture %}
+                                        ${{ assurance.montantCouverture|number_format(2, '.', ',') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Deductible</label>
+                                <p class="fs-5">
+                                    {% if assurance.franchise %}
+                                        ${{ assurance.franchise|number_format(2, '.', ',') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Annual Premium</label>
+                                <p class="fs-5">
+                                    {% if assurance.primeAnnuelle %}
+                                        ${{ assurance.primeAnnuelle|number_format(2, '.', ',') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Monthly Premium</label>
+                                <p class="fs-5">
+                                    {% if assurance.primeMensuelle %}
+                                        ${{ assurance.primeMensuelle|number_format(2, '.', ',') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Start Date</label>
+                                <p>
+                                    {% if assurance.dateDebut %}
+                                        {{ assurance.dateDebut|date('d/m/Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Expiry Date</label>
+                                <p>
+                                    {% if assurance.dateEcheance %}
+                                        {{ assurance.dateEcheance|date('d/m/Y') }}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Payment Method</label>
+                                <p>{{ assurance.modePaiement ?? 'N/A' }}</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="fw-bold">Auto Renewal</label>
+                                <p>
+                                    {% if assurance.renouvellementAuto %}
+                                        <span class="badge bg-success">Yes</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="fw-bold">Coverage Details</label>
+                            <div class="border rounded p-3 bg-light">
+                                <p class="mb-0">{{ assurance.garantiesIncluses ?? 'N/A' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            {% if app.user and app.user.role == 'admin' %}
+                                <a href="{{ path('app_assurance_edit', { id: assurance.id }) }}" class="btn btn-warning">
+                                    <i class="fa fa-edit me-2"></i>Edit
+                                </a>
+                                <a href="{{ path('app_assurance_delete', { id: assurance.id }) }}" class="btn btn-danger" 
+                                    onclick="return confirm('Are you sure?')">
+                                    <i class="fa fa-trash me-2"></i>Delete
+                                </a>
+                            {% endif %}
+                            <a href="{{ path('app_assurance_list') }}" class="btn btn-secondary">
+                                <i class="fa fa-arrow-left me-2"></i>Back to List
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

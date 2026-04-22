@@ -1,0 +1,9 @@
+# Routing configuration
+controllers:
+    resource: ../src/Controller/
+    type: attribute
+
+# Example route:
+# index:
+#     path: /
+#     controller: App\Controller\WelcomeController::index

@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Projects - Credix{% endblock %}
+
+{% block content %}
+    <!-- Projects Start -->
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="text-center mx-auto mb-5 wow fadeInUp" data-wow-delay="0.1s" style="max-width: 600px;">
+                <p class="d-inline-block border rounded text-primary fw-semi-bold py-1 px-3">Our Projects</p>
+                <h1 class="display-5 mb-4">Recent Projects</h1>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.1s">
+                    <div class="project-item rounded overflow-hidden h-100">
+                        <div class="position-relative overflow-hidden" style="height: 250px;">
+                            <img class="img-fluid w-100 h-100" src="{{ asset('img/carousel-1.jpg') }}" alt="">
+                            <div class="project-overlay">
+                                <a class="btn btn-primary" href="">View Details</a>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="mb-2">Project 1</h4>
+                            <p class="mb-0">Financial consulting project completed successfully.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.3s">
+                    <div class="project-item rounded overflow-hidden h-100">
+                        <div class="position-relative overflow-hidden" style="height: 250px;">
+                            <img class="img-fluid w-100 h-100" src="{{ asset('img/carousel-2.jpg') }}" alt="">
+                            <div class="project-overlay">
+                                <a class="btn btn-primary" href="">View Details</a>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="mb-2">Project 2</h4>
+                            <p class="mb-0">Investment portfolio optimization project.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 wow fadeInUp" data-wow-delay="0.5s">
+                    <div class="project-item rounded overflow-hidden h-100">
+                        <div class="position-relative overflow-hidden" style="height: 250px;">
+                            <img class="img-fluid w-100 h-100" src="{{ asset('img/about.jpg') }}" alt="">
+                            <div class="project-overlay">
+                                <a class="btn btn-primary" href="">View Details</a>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 class="mb-2">Project 3</h4>
+                            <p class="mb-0">Wealth management solutions implementation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Projects End -->
+{% endblock %}

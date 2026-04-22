@@ -1,0 +1,125 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}{{ title }} - Credix{% endblock %}
+
+{% block content %}
+    <div class="container-fluid py-4">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light border-bottom">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-file-alt me-2"></i>{{ title }}
+                        </h3>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <!-- Flash Messages -->
+                        {% if app.flashes %}
+                            {% for type, messages in app.flashes %}
+                                {% for message in messages %}
+                                    <div class="alert alert-{{ type === 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Error Messages -->
+                        {% if errors is not empty %}
+                            {% for error in errors %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fa fa-exclamation-circle me-2"></i>
+                                    {{ error }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <!-- Form -->
+                        <form method="POST">
+                            <!-- User Selection -->
+                            <div class="mb-3">
+                                <label for="utilisateur_id" class="form-label fw-bold">Select User <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" id="utilisateur_id" name="utilisateur_id" onchange="updateContracts(this.value)">
+                                    <option value="">-- Select a user --</option>
+                                    {% for user in users %}
+                                        <option value="{{ user.getId() }}" {% if selectedUserId == user.getId() %}selected{% endif %}>
+                                            {{ user.getPrenom() }} {{ user.getNom() }} ({{ user.getEmail() }})
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">Choose the user for whom you're filing this claim</small>
+                            </div>
+
+                            <!-- Contract Selection -->
+                            <div class="mb-3">
+                                <label for="contrat_id" class="form-label fw-bold">Select Contract <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-lg" id="contrat_id" name="contrat_id">
+                                    {% if contracts|length > 0 %}
+                                        {% for contract in contracts %}
+                                            <option value="{{ contract.getId() }}">
+                                                Contract #{{ contract.getNumeroContrat() }} - {{ contract.getAssurance().getTypeAssurance() }} (Active)
+                                            </option>
+                                        {% endfor %}
+                                    {% else %}
+                                        <option value="" disabled>-- Select a user first to see available contracts --</option>
+                                    {% endif %}
+                                </select>
+                                <small class="form-text text-muted">Only active contracts are available for claims</small>
+                            </div>
+
+                            <!-- Incident Date -->
+                            <div class="mb-3">
+                                <label for="date_sinistre" class="form-label fw-bold">Incident Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control form-control-lg" id="date_sinistre" name="date_sinistre">
+                                <small class="form-text text-muted">Date when the incident occurred</small>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="mb-4">
+                                <label for="description" class="form-label fw-bold">Claim Description <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="description" name="description" rows="5" 
+                                          placeholder="Provide detailed information about the claim (minimum 10 characters)"
+                                          style="resize: vertical; min-height: 120px;"></textarea>
+                                <small class="form-text text-muted">Minimum 10 characters, maximum 5000 characters</small>
+                            </div>
+
+                            <!-- File Upload -->
+                            <div class="mb-4">
+                                <label for="preuves" class="form-label fw-bold">Attach Proof Documents (Optional)</label>
+                                <div class="input-group">
+                                    <input type="file" class="form-control" id="preuves" name="preuves[]" multiple accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx">
+                                </div>
+                                <small class="form-text text-muted">
+                                    Allowed: Images (JPG, PNG, GIF), PDF, Word documents. 
+                                    Maximum 5 files, 25MB total
+                                </small>
+                            </div>
+
+                            <!-- Submit Buttons -->
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                    <i class="fa fa-check-circle me-2"></i>File Claim
+                                </button>
+                                <a href="{{ path('app_sinistre_list') }}" class="btn btn-outline-secondary btn-lg flex-grow-1">
+                                    <i class="fa fa-times me-2"></i>Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateContracts(userId) {
+            if (userId) {
+                // Redirect to update contracts based on selected user
+                window.location.href = '{{ path("app_sinistre_admin_new") }}?user_id=' + userId;
+            }
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,272 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Investments - Investment Platform{% endblock %}
+
+{% block content %}
+<div class="investments-container" style="margin-top: 150px;">
+    <!-- Header Section -->
+    <div class="investments-header">
+        <div class="container-xxl">
+            <div class="row align-items-center mb-4">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-2" style="color: #1a3a52;">
+                        <i class="fa fa-chart-line me-3" style="color: #3498db;"></i>Your Investments
+                    </h1>
+                    <p class="text-muted mb-0">Manage and track all your investments</p>
+                </div>
+                <div class="col-lg-4 text-end">
+                    <a href="{{ path('app_projet_list') }}" class="btn btn-lg" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; border: none; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);">
+                        <i class="fa fa-plus me-2"></i>Browse Projects
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            {% if investissements|length > 0 %}
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon invested-total">
+                            <i class="fa fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Total Invested</h6>
+                            <p class="stat-number" style="font-size: 20px;">{{ (totalInvesti|number_format(0, '.', ','))|slice(0, 6) }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon pending-investments">
+                            <i class="fa fa-hourglass-half"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Pending</h6>
+                            <p class="stat-number">{{ pendingCount }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon accepted-investments">
+                            <i class="fa fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Accepted</h6>
+                            <p class="stat-number">{{ completedCount }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon total-investments">
+                            <i class="fa fa-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Total</h6>
+                            <p class="stat-number">{{ investissements|length }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container-xxl py-5">
+        <div class="container">
+
+    <!-- Search, Filter, and Sort Section -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <!-- Search -->
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Search projects..." value="{{ search }}">
+                </div>
+
+                <!-- Status Filter -->
+                <div class="col-md-2">
+                    <select name="statut" class="form-select">
+                        <option value="">All Status</option>
+                        {% for stat in statutOptions %}
+                        <option value="{{ stat }}" {% if statut == stat %}selected{% endif %}>{{ stat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Sort By -->
+                <div class="col-md-2">
+                    <select name="sort" class="form-select">
+                        <option value="dateinves" {% if sortBy == 'dateinves' %}selected{% endif %}>Date</option>
+                        <option value="montant" {% if sortBy == 'montant' %}selected{% endif %}>Amount</option>
+                        <option value="projet" {% if sortBy == 'projet' %}selected{% endif %}>Project</option>
+                        {% if isAdmin %}<option value="utilisateur" {% if sortBy == 'utilisateur' %}selected{% endif %}>User</option>{% endif %}
+                    </select>
+                </div>
+
+                <!-- Sort Order -->
+                <div class="col-md-2">
+                    <select name="order" class="form-select">
+                        <option value="desc" {% if sortOrder == 'desc' %}selected{% endif %}>Descending</option>
+                        <option value="asc" {% if sortOrder == 'asc' %}selected{% endif %}>Ascending</option>
+                    </select>
+                </div>
+
+                <!-- Buttons -->
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+
+                <div class="col-md-1">
+                    <a href="{{ path('app_investissement_list') }}" class="btn btn-secondary w-100">
+                        <i class="fas fa-redo"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            {% if investissements|length == 0 %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No investments yet. 
+                    <a href="{{ path('app_projet_list') }}">Browse our projects</a> and start investing!
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Project</th>
+                                <th>Amount</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                {% if isAdmin %}
+                                <th>User</th>
+                                <th>Account</th>
+                                {% endif %}
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inv in investissements %}
+                            <tr>
+                                <td>
+                                    <a href="{{ path('app_projet_view', {id: inv.getProjet().getIdprojet()}) }}">
+                                        {{ inv.getProjet().getNomprojet() }}
+                                    </a>
+                                </td>
+                                <td><strong>{{ inv.getMontantinvesti()|number_format(2, '.', ',') }} D.T</strong></td>
+                                <td>{{ inv.getDateinves()|date('d/m/Y') }}</td>
+                                <td>
+                                    <span class="badge bg-{% if inv.getStatutInvestissement() == 'EN_ATTENTE' %}warning{% elseif inv.getStatutInvestissement() == 'ACCEPTE' %}success{% elseif inv.getStatutInvestissement() == 'REJETE' %}danger{% else %}secondary{% endif %}">
+                                        {{ inv.getStatutInvestissement() }}
+                                    </span>
+                                </td>
+                                {% if isAdmin %}
+                                <td>
+                                    {% if inv.getUtilisateur() %}
+                                        {{ inv.getUtilisateur().getPrenom() }} {{ inv.getUtilisateur().getNom() }}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if inv.getCompte() %}
+                                        {{ inv.getCompte().getNumeroCompte() }}
+                                    {% else %}
+                                        <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+                                <td>
+                                    <a href="{{ path('app_investissement_view', {id: inv.getIdinves()}) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .investments-container {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+
+    .investments-header {
+        background: white;
+        padding: 40px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 24px;
+    }
+
+    .stat-icon.invested-total {
+        background: #d1ecf1;
+        color: #17a2b8;
+    }
+
+    .stat-icon.pending-investments {
+        background: #fff3cd;
+        color: #ff9800;
+    }
+
+    .stat-icon.accepted-investments {
+        background: #d4edda;
+        color: #28a745;
+    }
+
+    .stat-icon.total-investments {
+        background: #e2e3e5;
+        color: #666;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1a3a52;
+        margin: 0;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+</style>
+
+{% endblock %}

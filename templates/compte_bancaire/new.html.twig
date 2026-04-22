@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un Compte Bancaire{% endblock %}
+
+{% block content %}
+<div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-md-8 mx-auto">
+                <h2 class="mb-0">
+                    <i class="fa fa-plus-circle me-2"></i>Ajouter un Compte Bancaire
+                </h2>
+                <p class="text-muted small">Entrez les informations de votre compte bancaire</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                {% include '_partials/validation_errors.html.twig' %}
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <form method="POST">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Numéro de Compte <span class="text-danger">*</span></label>
+                                    <input type="text" name="numero_compte" class="form-control" placeholder="Ex: 123456789">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Type de Compte <span class="text-danger">*</span></label>
+                                    <select name="type_compte" class="form-select">
+                                        <option value="">--Sélectionner--</option>
+                                        <option value="Courant">Compte Courant</option>
+                                        <option value="Épargne">Compte d'Épargne</option>
+                                        <option value="Titre">Compte-Titre</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Titulaire du Compte <span class="text-danger">*</span></label>
+                                    <input type="text" name="titulaire" class="form-control" placeholder="Nom du titulaire">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Devise <span class="text-danger">*</span></label>
+                                    <select name="devise" class="form-select">
+                                        <option value="USD">USD ($)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                        <option value="GBP">GBP (£)</option>
+                                        <option value="TND">TND (د.ت)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Email</label>
+                                    <input type="email" name="email" class="form-control" placeholder="email@example.com">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-bold">Téléphone</label>
+                                    <input type="tel" name="telephone" class="form-control" placeholder="+216 21 234 567">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Solde Initial</label>
+                                <div class="input-group">
+                                    <input type="number" name="solde" class="form-control" value="0" placeholder="0.00">
+                                    <span class="input-group-text">USD</span>
+                                </div>
+                            </div>
+
+                            <div class="d-grid gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fa fa-save me-2"></i>Créer le Compte
+                                </button>
+                                <a href="{{ path('app_compte_bancaire_index') }}" class="btn btn-outline-secondary">
+                                    <i class="fa fa-times me-2"></i>Annuler
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

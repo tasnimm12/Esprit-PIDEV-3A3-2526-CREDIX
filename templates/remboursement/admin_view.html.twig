@@ -1,0 +1,210 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Remboursement Details - Admin{% endblock %}
+
+{% block breadcrumb_current %}Remboursement #{{ remboursement.getIdRemboursement() }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="display-6 mb-2">Remboursement #{{ remboursement.getIdRemboursement() }}</h1>
+                    <p class="text-muted">Detailed payment and cashback information</p>
+                </div>
+                <div>
+                    <a href="{{ path('app_remboursement_admin_list') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Details -->
+        <div class="col-lg-8">
+            <!-- Remboursement Information Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3 border-bottom">
+                    <h5 class="mb-0">Payment Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1"><strong>Remboursement ID</strong></p>
+                            <p class="mb-3">#{{ remboursement.getIdRemboursement() }}</p>
+
+                            <p class="text-muted mb-1"><strong>Payment Date</strong></p>
+                            <p class="mb-3">{{ remboursement.getDateRemboursement()|date('l, d F Y') }}</p>
+
+                            <p class="text-muted mb-1"><strong>Type</strong></p>
+                            <p class="mb-3">
+                                <span class="badge bg-primary">{{ remboursement.getTypeRemboursement()|replace({'_': ' '}) }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1"><strong>Payment Amount</strong></p>
+                            <p class="mb-3 display-6 text-success">${{ remboursement.getMontant()|number_format(2, '.', ',') }}</p>
+
+                            <p class="text-muted mb-1"><strong>Status</strong></p>
+                            <p class="mb-3">
+                                {% set statusClass = remboursement.getStatut() == 'COMPLETE' or remboursement.getStatut() == 'COMPLÈTE' ? 'success' : 'warning' %}
+                                <span class="badge bg-{{ statusClass }} p-2">{{ remboursement.getStatut()|replace({'_': ' '}) }}</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <p class="text-muted mb-1"><strong>Description</strong></p>
+                    <p>{{ remboursement.getDescription() ?: 'No description provided' }}</p>
+                </div>
+            </div>
+
+            <!-- Cashback Information Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3 border-bottom">
+                    <h5 class="mb-0">Cashback Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1"><strong>Cashback Percentage</strong></p>
+                            <p class="mb-3 display-6 text-info">
+                                {{ remboursement.getCashbackPourcentage() ?? '0' }}%
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1"><strong>Cashback Amount Earned</strong></p>
+                            <p class="mb-3 display-6 text-info">
+                                ${{ remboursement.getMontantCashback()|number_format(2, '.', ',') }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Credit Card -->
+            {% if credit %}
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light py-3 border-bottom">
+                        <h5 class="mb-0">Related Credit</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="text-muted mb-1"><strong>Credit ID</strong></p>
+                                <p class="mb-3">
+                                    <a href="{{ path('app_credit_view', {id: credit.getIdCredit()}) }}" class="text-decoration-none">
+                                        #{{ credit.getIdCredit() }}
+                                    </a>
+                                </p>
+
+                                <p class="text-muted mb-1"><strong>Original Amount</strong></p>
+                                <p class="mb-3">${{ credit.getMontantDemande()|number_format(2, '.', ',') }}</p>
+
+                                <p class="text-muted mb-1"><strong>Duration</strong></p>
+                                <p class="mb-3">{{ credit.getTypeCredit() }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="text-muted mb-1"><strong>Interest Rate</strong></p>
+                                <p class="mb-3">{{ credit.getTauxInteret()|number_format(2) }}%</p>
+
+                                <p class="text-muted mb-1"><strong>Total Amount</strong></p>
+                                <p class="mb-3">${{ credit.getMontantTotal()|number_format(2, '.', ',') }}</p>
+
+                                <p class="text-muted mb-1"><strong>Monthly Payment</strong></p>
+                                <p class="mb-3">${{ credit.getMensualite()|number_format(2, '.', ',') }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- User Information Card -->
+            {% if utilisateur %}
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-header bg-light py-3 border-bottom">
+                        <h5 class="mb-0">User Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <div class="avatar bg-primary text-white mb-3" style="width: 60px; height: 60px; line-height: 60px; border-radius: 50%; margin: 0 auto; font-size: 24px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+
+                        <p class="text-center mb-3">
+                            <strong>{{ utilisateur.getNom() }} {{ utilisateur.getPrenom() }}</strong>
+                            <br>
+                            <small class="text-muted">{{ utilisateur.getEmail() }}</small>
+                        </p>
+
+                        <hr>
+
+                        <p class="text-muted mb-1"><strong>User ID</strong></p>
+                        <p class="mb-3">#{{ utilisateur.getIdUser() }}</p>
+
+                        <p class="text-muted mb-1"><strong>Phone</strong></p>
+                        <p class="mb-3">{{ utilisateur.getTelephone() ?: 'Not provided' }}</p>
+
+                        <p class="text-muted mb-1"><strong>Role</strong></p>
+                        <p class="mb-3">
+                            <span class="badge bg-secondary">{{ utilisateur.getRole() }}</span>
+                        </p>
+
+                        <div class="d-grid gap-2">
+                            <a href="{{ path('app_admin_user_details', {id: utilisateur.getIdUser()}) }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-user-circle"></i> View User Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    User information not available
+                </div>
+            {% endif %}
+
+            <!-- Metadata Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3 border-bottom">
+                    <h5 class="mb-0">Metadata</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-1"><strong>Created At</strong></p>
+                    <p class="mb-3">{{ remboursement.getCreatedAt()|date('d/m/Y H:i') }}</p>
+
+                    <p class="text-muted mb-1"><strong>Reference ID</strong></p>
+                    <p class="mb-3">{{ remboursement.getReferenceId() ?: 'N/A' }}</p>
+
+                    <p class="text-muted mb-1"><strong>Bank Account</strong></p>
+                    <p class="mb-0">
+                        {% if remboursement.getCompte() %}
+                            {{ remboursement.getCompte().getTypeCompte() }}
+                            <br>
+                            <small class="text-muted">{{ remboursement.getCompte().getNumeroCompte() }}</small>
+                        {% else %}
+                            <span class="text-muted">Not specified</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+{% endblock %}

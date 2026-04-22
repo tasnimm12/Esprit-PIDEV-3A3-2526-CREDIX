@@ -1,0 +1,167 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}
+    {% if projet %}
+        Edit Project - Admin - Credix
+    {% else %}
+        Create Project - Admin - Credix
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h1>
+                {% if projet %}
+                    Edit Project: {{ projet.getNomprojet() }}
+                {% else %}
+                    Create New Project
+                {% endif %}
+            </h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {% if errors %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <h5 class="alert-heading">Validation Errors</h5>
+                        <ul class="mb-0">
+                            {% for error in errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST" novalidate>
+                        <div class="mb-3">
+                            <label for="nomprojet" class="form-label">Project Name *</label>
+                            <input type="text" class="form-control {% if fieldErrors is defined and fieldErrors.nomprojet is defined %}is-invalid{% endif %}" id="nomprojet" name="nomprojet" 
+                                value="{{ formData['nomprojet']|default(projet ? projet.getNomprojet() : '') }}" required maxlength="255">
+                            {% if fieldErrors is defined and fieldErrors.nomprojet is defined %}
+                            <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                <i class="fas fa-exclamation-circle"></i> {{ fieldErrors.nomprojet }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4">{{ formData['description']|default(projet ? projet.getDescription() : '') }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="secteur" class="form-label">Sector</label>
+                            <input type="text" class="form-control" id="secteur" name="secteur"
+                                value="{{ formData['secteur']|default(projet ? projet.getSecteur() : '') }}" placeholder="e.g., Technology, Real Estate">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="montant_objectif" class="form-label">Target Amount (D.T) *</label>
+                                <input type="number" class="form-control {% if fieldErrors is defined and fieldErrors.montant is defined %}is-invalid{% endif %}" id="montant_objectif" name="montant_objectif" 
+                                    value="{{ formData['montant_objectif']|default(projet ? projet.getMontantObjectif() : '') }}" required min="0.01" step="0.01">
+                                {% if fieldErrors is defined and fieldErrors.montant is defined %}
+                                <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                    <i class="fas fa-exclamation-circle"></i> {{ fieldErrors.montant }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="statut_projet" class="form-label">Status</label>
+                                <select class="form-select" id="statut_projet" name="statut_projet">
+                                    {% for stat in statutOptions %}
+                                    <option value="{{ stat }}" {% if (formData['statut_projet']|default(projet ? projet.getStatutProjet() : 'ACTIF')) == stat %}selected{% endif %}>
+                                        {{ stat }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="date_debut" class="form-label">Start Date *</label>
+                                <input type="date" class="form-control {% if fieldErrors is defined and fieldErrors.date_debut is defined %}is-invalid{% endif %}" id="date_debut" name="date_debut" 
+                                    value="{{ formData['date_debut']|default(projet ? projet.getDateDebut()|date('Y-m-d') : '') }}" required>
+                                {% if fieldErrors is defined and fieldErrors.date_debut is defined %}
+                                <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                    <i class="fas fa-exclamation-circle"></i> {{ fieldErrors.date_debut }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="date_fin" class="form-label">End Date *</label>
+                                <input type="date" class="form-control {% if fieldErrors is defined and fieldErrors.date_fin is defined %}is-invalid{% endif %}" id="date_fin" name="date_fin" 
+                                    value="{{ formData['date_fin']|default(projet ? projet.getDateFin()|date('Y-m-d') : '') }}" required>
+                                {% if fieldErrors is defined and fieldErrors.date_fin is defined %}
+                                <div class="invalid-feedback d-block text-danger" style="display: block !important;">
+                                    <i class="fas fa-exclamation-circle"></i> {{ fieldErrors.date_fin }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <p class="text-muted"><small>* Required fields</small></p>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ path('app_admin_projets') }}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 
+                                {% if projet %}Update Project{% else %}Create Project{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% if projet %}
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>Project Summary</h5>
+                    <hr>
+                    <dl class="row">
+                        <dt class="col-sm-6">Project ID:</dt>
+                        <dd class="col-sm-6">{{ projet.getIdprojet() }}</dd>
+
+                        <dt class="col-sm-6">Created:</dt>
+                        <dd class="col-sm-6">{{ projet.getCreatedAt()|date('d/m/Y H:i') }}</dd>
+
+                        <dt class="col-sm-6">Updated:</dt>
+                        <dd class="col-sm-6">
+                            {% if projet.getUpdatedAt() %}
+                                {{ projet.getUpdatedAt()|date('d/m/Y H:i') }}
+                            {% else %}
+                                <span class="text-muted">Never</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-6">Collected:</dt>
+                        <dd class="col-sm-6">{{ projet.getMontantCollecte()|number_format(2, '.', ',') }} D.T</dd>
+
+                        <dt class="col-sm-6">Progress:</dt>
+                        <dd class="col-sm-6">
+                            {% set percent = projet.getMontantObjectif() > 0 ? (projet.getMontantCollecte() / projet.getMontantObjectif() * 100)|round : 0 %}
+                            {{ percent }}%
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

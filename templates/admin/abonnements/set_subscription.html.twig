@@ -1,0 +1,209 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Set Client Subscription - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+    <div class="container">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-md-8 mx-auto">
+                <h2 class="mb-0">
+                    <i class="fa fa-user-check me-2"></i>Assign Subscription
+                </h2>
+                <small class="text-muted">For: {{ user.prenom }} {{ user.nom }} ({{ user.email }})</small>
+            </div>
+        </div>
+
+        <!-- Validation Errors -->
+        {% if errors is defined and errors|length > 0 %}
+            <div class="row mb-4">
+                <div class="col-md-8 mx-auto">
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <strong><i class="fa fa-exclamation-circle me-2"></i>Validation Errors:</strong>
+                        <ul class="mb-0 mt-2">
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Form -->
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <!-- Current Subscriptions Info -->
+                        <div class="mb-4 p-3 bg-light rounded">
+                            <h6 class="mb-2">Current Subscriptions</h6>
+                            {% if user.abonnements|length > 0 %}
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for abonnement in user.abonnements %}
+                                        <span class="badge bg-success fs-6 p-2">
+                                            {{ abonnement.typeAbonnement }}
+                                            <br>
+                                            <small>${{ abonnement.prixMensuel|number_format(2) }}/mo</small>
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-muted">
+                                    <i class="fa fa-times me-2"></i>No active subscriptions
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Available Plans -->
+                        <form method="POST" action="{{ path('app_admin_set_client_subscription', {'userId': user.id}) }}">
+                            <h6 class="mb-3">Manage Plans</h6>
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Action</label>
+                                    <select name="action" class="form-select" id="actionSelect">
+                                        <option value="">-- Select Action --</option>
+                                        <option value="add" {% if app.request.request.get('action') == 'add' %}selected{% endif %}>Add a Plan</option>
+                                        <option value="remove" {% if app.request.request.get('action') == 'remove' %}selected{% endif %}>Remove a Plan</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            {% if abonnements|length > 0 %}
+                                <div class="row g-3 mb-4">
+                                    {% for abonnement in abonnements %}
+                                        <div class="col-md-6">
+                                            <div class="card border h-100 cursor-pointer plan-card" onclick="document.getElementById('plan_{{ abonnement.idAbonnement }}').checked = !document.getElementById('plan_{{ abonnement.idAbonnement }}').checked">
+                                                <div class="card-body">
+                                                    <div class="form-check mb-2">
+                                                        <input class="form-check-input" type="checkbox" name="abonnement_id" value="{{ abonnement.idAbonnement }}" id="plan_{{ abonnement.idAbonnement }}"
+                                                            {% if app.request.request.get('abonnement_id') == abonnement.idAbonnement %}checked{% endif %}>
+                                                        <label class="form-check-label w-100" for="plan_{{ abonnement.idAbonnement }}">
+                                                            <strong class="d-block">{{ abonnement.typeAbonnement }}</strong>
+                                                        </label>
+                                                    </div>
+                                                    <h5 class="text-primary mb-2">
+                                                        ${{ abonnement.prixMensuel|number_format(2) }}
+                                                        <small class="text-muted fs-6">/month</small>
+                                                    </h5>
+                                                    <small class="text-muted d-block">
+                                                        {{ abonnement.description|default('No description') }}
+                                                    </small>
+                                                    {% if user.abonnements.contains(abonnement) %}
+                                                        <div class="mt-2">
+                                                            <span class="badge bg-success">Currently Active</span>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    <i class="fa fa-exclamation-triangle me-2"></i>
+                                    No active subscription plans available. 
+                                    <a href="{{ path('app_admin_abonnements') }}" class="alert-link">Create plans first</a>
+                                </div>
+                            {% endif %}
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    {% if abonnements|length > 0 %}
+                                        <button type="submit" class="btn btn-success w-100">
+                                            <i class="fa fa-save me-2"></i>Apply Changes
+                                        </button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-success w-100" disabled>
+                                            <i class="fa fa-save me-2"></i>Apply Changes
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{{ path('app_admin_client_subscriptions') }}" class="btn btn-outline-secondary w-100">
+                                        <i class="fa fa-times me-2"></i>Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+
+                        <script>
+                            document.getElementById('actionSelect').addEventListener('change', function() {
+                                if (!this.value) return; // Don't auto-check if action not selected
+                                
+                                const checkboxes = document.querySelectorAll('input[name="abonnement_id"]');
+                                const isRemove = this.value === 'remove';
+                                
+                                // Check if form was previously submitted with errors
+                                const hasErrors = {{ errors is defined and errors|length > 0 ? 'true' : 'false' }};
+                                
+                                if (hasErrors) {
+                                    // Preserve existing selections if form has errors
+                                    return;
+                                }
+                                
+                                checkboxes.forEach(checkbox => {
+                                    const card = checkbox.closest('.plan-card');
+                                    if (isRemove) {
+                                        // In remove mode, pre-check subscriptions the user has
+                                        checkbox.checked = card.querySelector('.badge.bg-success') ? true : false;
+                                    } else {
+                                        // In add mode, uncheck all
+                                        checkbox.checked = false;
+                                    }
+                                });
+                            });
+                        </script>
+                    </div>
+                </div>
+
+                <!-- Client Info Card -->
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body">
+                        <h6 class="mb-3">Client Information</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted d-block">Email</small>
+                                <strong>{{ user.email }}</strong>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted d-block">Full Name</small>
+                                <strong>{{ user.prenom }} {{ user.nom }}</strong>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted d-block">Phone</small>
+                                <strong>{{ user.telephone }}</strong>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted d-block">Account Status</small>
+                                <strong>
+                                    {% if user.statutCompte == 'ACTIF' %}
+                                        <span class="badge bg-success">{{ user.statutCompte }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">{{ user.statutCompte }}</span>
+                                    {% endif %}
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .plan-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .plan-card:hover {
+        border-color: #007bff !important;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+</style>
+{% endblock %}

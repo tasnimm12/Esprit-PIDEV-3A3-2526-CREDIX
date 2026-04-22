@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Claim Notification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #007bff;
+            font-size: 24px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .status-approved {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .claim-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .claim-info h3 {
+            margin: 0 0 10px 0;
+            color: #007bff;
+        }
+        .claim-detail {
+            margin: 8px 0;
+        }
+        .claim-detail strong {
+            color: #333;
+        }
+        .admin-response {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .admin-response h3 {
+            margin: 0 0 10px 0;
+            color: #856404;
+        }
+        .footer {
+            border-top: 1px solid #ddd;
+            margin-top: 30px;
+            padding-top: 15px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #007bff;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Insurance Claim Notification</h1>
+            <div class="status-badge {% if isApproved %}status-approved{% elseif isRejected %}status-rejected{% endif %}">
+                {% if isApproved %}
+                    ✓ CLAIM APPROVED
+                {% else %}
+                    ✗ CLAIM REJECTED
+                {% endif %}
+            </div>
+        </div>
+
+        <p>Dear {{ sinistre.utilisateur.prenom }} {{ sinistre.utilisateur.nom }},</p>
+
+        {% if isApproved %}
+            <p>We are pleased to inform you that <strong>your insurance claim has been APPROVED</strong>.</p>
+            <p>Your approved claim will proceed to payment processing. You should expect to receive your funds within 5-7 business days.</p>
+        {% else %}
+            <p>We regret to inform you that <strong>your insurance claim has been REJECTED</strong>.</p>
+            <p>Please review the explanation below for details about this decision.</p>
+        {% endif %}
+
+        <div class="claim-info">
+            <h3>Claim Details</h3>
+            <div class="claim-detail">
+                <strong>Claim Number:</strong> #{{ claimNumber }}
+            </div>
+            <div class="claim-detail">
+                <strong>Claim Date:</strong> {{ sinistre.dateSinistre|date('F d, Y') }}
+            </div>
+            <div class="claim-detail">
+                <strong>Decision Date:</strong> {{ dateResponse|date('F d, Y') }}
+            </div>
+            <div class="claim-detail">
+                <strong>Description:</strong><br>
+                {{ description }}
+            </div>
+        </div>
+
+        {% if adminResponse %}
+            <div class="admin-response">
+                <h3>Administrator's Comments</h3>
+                <p>{{ adminResponse }}</p>
+            </div>
+        {% endif %}
+
+        <p>
+            <a href="{{ absolute_url(path('app_sinistre_show', {'id': sinistre.id})) }}" class="button">
+                View Your Claim
+            </a>
+        </p>
+
+        <p>If you have any questions about this decision or need further assistance, please don't hesitate to contact us.</p>
+
+        <p style="background-color: #e7f3ff; border-left: 4px solid #2196F3; padding: 10px; border-radius: 4px;">
+            <strong>📌 Note:</strong> When you click the button below, you may need to log in if your session has expired. 
+            Please use your email address and password to access your claim.
+        </p>
+
+        <div class="footer">
+            <p>This is an automated message from the Insurance Claims System.</p>
+            <p>&copy; 2026 Insurance Management System. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

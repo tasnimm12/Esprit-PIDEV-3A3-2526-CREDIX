@@ -1,0 +1,121 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Profile - Credix{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-7">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-light border-0">
+                            <h3 class="card-title mb-0">
+                                <i class="fa fa-user-edit me-2"></i>Edit Profile
+                            </h3>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <!-- Error Messages -->
+                            {% if errors is not empty %}
+                                {% for error in errors %}
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fa fa-exclamation-circle me-2"></i>
+                                        {{ error }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                            <!-- Edit Form -->
+                            <form method="POST" action="{{ path('app_profile_edit') }}">
+                                <!-- First Name -->
+                                <div class="mb-3">
+                                    <label for="prenom" class="form-label fw-bold">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-lg" id="prenom" name="prenom" 
+                                           value="{{ user.prenom }}" placeholder="John">
+                                    <small class="form-text text-muted">2-100 characters, letters only</small>
+                                </div>
+
+                                <!-- Last Name -->
+                                <div class="mb-3">
+                                    <label for="nom" class="form-label fw-bold">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-lg" id="nom" name="nom" 
+                                           value="{{ user.nom }}" placeholder="Doe">
+                                    <small class="form-text text-muted">2-100 characters, letters only</small>
+                                </div>
+
+                                <!-- Email -->
+                                <div class="mb-3">
+                                    <label for="email" class="form-label fw-bold">Email Address <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-lg" id="email" name="email" 
+                                           value="{{ user.email }}" placeholder="john.doe@example.com">
+                                    <small class="form-text text-muted">Valid email address required</small>
+                                </div>
+
+                                <!-- Phone -->
+                                <div class="mb-4">
+                                    <label for="telephone" class="form-label fw-bold">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-lg" id="telephone" name="telephone" 
+                                           value="{{ user.telephone }}" placeholder="12345678">
+                                    <small class="form-text text-muted">Exactly 8 digits</small>
+                                </div>
+
+                                <hr>
+
+                                <!-- Change Password Section -->
+                                <div class="mb-4">
+                                    <h5 class="mb-3">
+                                        <i class="fa fa-key me-2"></i>Change Password (Optional)
+                                    </h5>
+
+                                    <!-- New Password -->
+                                    <div class="mb-3">
+                                        <label for="mot_de_passe" class="form-label fw-bold">New Password</label>
+                                        <input type="password" class="form-control form-control-lg" id="mot_de_passe" name="mot_de_passe" 
+                                               placeholder="Leave blank to keep current password">
+                                        <small class="form-text text-muted">Minimum 8 characters (leave blank to keep current password)</small>
+                                    </div>
+
+                                    <!-- Confirm New Password -->
+                                    <div class="mb-3">
+                                        <label for="confirm_password" class="form-label fw-bold">Confirm Password</label>
+                                        <input type="password" class="form-control form-control-lg" id="confirm_password" name="confirm_password" 
+                                               placeholder="Re-enter your new password">
+                                        <small class="form-text text-muted">Passwords must match</small>
+                                    </div>
+                                </div>
+
+                                <!-- Buttons -->
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                        <i class="fa fa-save me-2"></i>Save Changes
+                                    </button>
+                                    <a href="{{ path('app_profile') }}" class="btn btn-outline-secondary btn-lg flex-grow-1">
+                                        <i class="fa fa-times me-2"></i>Cancel
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Delete Account Section -->
+                    <div class="card shadow-sm border-0 border-danger mt-4">
+                        <div class="card-header bg-light border-bottom border-danger">
+                            <h5 class="card-title mb-0 text-danger">
+                                <i class="fa fa-trash me-2"></i>Danger Zone
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted mb-3">
+                                Deleting your account is permanent and cannot be undone. All your data will be lost.
+                            </p>
+                            <button class="btn btn-danger btn-sm" disabled>
+                                <i class="fa fa-exclamation-triangle me-2"></i>Delete Account (Coming Soon)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

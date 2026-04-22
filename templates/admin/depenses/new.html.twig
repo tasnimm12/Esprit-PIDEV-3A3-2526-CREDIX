@@ -1,0 +1,107 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Create Expense - Admin{% endblock %}
+
+{% block breadcrumb_current %}Create Expense{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="mb-4">
+        <h1 class="h3 mb-0">Create New Expense</h1>
+        <p class="text-muted">Add a new expense to the system</p>
+    </div>
+
+    <!-- Messages -->
+    {% if errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa fa-exclamation-circle"></i> <strong>Errors occurred:</strong>
+            <ul class="mb-0 mt-2">
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endif %}
+
+    <!-- Form Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="POST" class="row g-4">
+                <!-- User Selection -->
+                <div class="col-md-6">
+                    <label for="user_id" class="form-label">User <span class="text-danger">*</span></label>
+                    <select name="user_id" id="user_id" class="form-select">
+                        <option value="">Select a user...</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.prenom }} {{ user.nom }} ({{ user.email }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Category -->
+                <div class="col-md-6">
+                    <label for="categorie" class="form-label">Category <span class="text-danger">*</span></label>
+                    <input type="text" name="categorie" id="categorie" class="form-control" placeholder="e.g., Office, Travel, Food">
+                </div>
+
+                <!-- Bank Account -->
+                <div class="col-md-6">
+                    <label for="compte_id" class="form-label">Bank Account <span class="text-danger">*</span></label>
+                    <select name="compte_id" id="compte_id" class="form-select">
+                        <option value="">Select a bank account...</option>
+                        {% for account in accounts %}
+                            <option value="{{ account.id }}">{{ account.email }} - {{ account.solde |slice(-4) }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Description -->
+                <div class="col-12">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea name="description" id="description" class="form-control" rows="3" placeholder="Details about the expense..."></textarea>
+                </div>
+
+                <!-- Amount -->
+                <div class="col-md-4">
+                    <label for="montant" class="form-label">Amount <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" name="montant" id="montant" class="form-control" placeholder="0.00">
+                    </div>
+                </div>
+
+                <!-- Date -->
+                <div class="col-md-4">
+                    <label for="date_depense" class="form-label">Expense Date <span class="text-danger">*</span></label>
+                    <input type="date" name="date_depense" id="date_depense" class="form-control" value="{{ 'now'|date('Y-m-d') }}">
+                </div>
+
+                <!-- Payment Method -->
+                <div class="col-md-4">
+                    <label for="mode_paiement" class="form-label">Payment Method</label>
+                    <select name="mode_paiement" id="mode_paiement" class="form-select">
+                        <option value="">Select method...</option>
+                        <option value="Cash">Cash</option>
+                        <option value="Card">Card</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Check">Check</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Create Expense
+                    </button>
+                    <a href="{{ path('app_admin_depenses') }}" class="btn btn-outline-secondary">
+                        <i class="fa fa-arrow-left"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

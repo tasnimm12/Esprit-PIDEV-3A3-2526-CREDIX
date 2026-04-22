@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }} - Credix{% endblock %}
+
+{% block content %}
+<div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="bg-white border rounded p-5 wow fadeInUp" data-wow-delay="0.1s">
+                    <h1 class="display-6 mb-4">{{ title }}</h1>
+                    <p class="text-muted mb-4">
+                        {% if isEditConstat|default(false) %}
+                            Complete or update the constat details for this auto claim.
+                        {% else %}
+                            Your claim was detected as an auto accident. Please complete this constat before the claim is submitted.
+                        {% endif %}
+                    </p>
+
+                    {% for type, messages in app.flashes %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ type in ['success', 'danger', 'warning', 'info'] ? type : 'secondary' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+
+                    {% include '_partials/validation_errors.html.twig' %}
+
+                    {% if draft %}
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">Claim Draft Summary</h5>
+                                <p class="mb-2"><strong>Incident Date:</strong> {{ draft.date_sinistre }}</p>
+                                <p class="mb-2"><strong>Location:</strong> {{ draft.location_address ?: 'Not provided' }}</p>
+                                <p class="mb-0" style="white-space: pre-wrap;"><strong>Description:</strong> {{ draft.description }}</p>
+                            </div>
+                        </div>
+                    {% elseif sinistre %}
+                        <div class="card bg-light border-0 mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title mb-3">Claim Summary</h5>
+                                <p class="mb-2"><strong>Claim #:</strong> {{ sinistre.id }}</p>
+                                <p class="mb-2"><strong>Incident Date:</strong> {{ sinistre.dateSinistre|date('Y-m-d') }}</p>
+                                <p class="mb-2"><strong>Location:</strong> {{ sinistre.locationAddress ?: 'Not provided' }}</p>
+                                <p class="mb-0" style="white-space: pre-wrap;"><strong>Description:</strong> {{ sinistre.description }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label for="other_driver_name" class="form-label">Other Driver Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="other_driver_name" name="other_driver_name" value="{{ form_data.other_driver_name|default('') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="other_vehicle_plate" class="form-label">Other Vehicle Plate <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="other_vehicle_plate" name="other_vehicle_plate" value="{{ form_data.other_vehicle_plate|default('') }}">
+                            </div>
+
+                            <div class="col-12">
+                                <label for="accident_circumstances" class="form-label">Accident Circumstances <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="accident_circumstances" name="accident_circumstances" rows="5">{{ form_data.accident_circumstances|default('') }}</textarea>
+                                <small class="form-text text-muted">Explain how the accident happened, who was involved, and the visible damage.</small>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="police_report" name="police_report" value="1" {% if form_data.police_report|default(false) %}checked{% endif %}>
+                                    <label class="form-check-label" for="police_report">Police report filed</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" id="injuries_reported" name="injuries_reported" value="1" {% if form_data.injuries_reported|default(false) %}checked{% endif %}>
+                                    <label class="form-check-label" for="injuries_reported">Injuries reported</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="constat_notes" class="form-label">Additional Notes</label>
+                                <textarea class="form-control" id="constat_notes" name="constat_notes" rows="3">{{ form_data.constat_notes|default('') }}</textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="preuves" class="form-label">Evidence Files</label>
+                                <input type="file" class="form-control" id="preuves" name="preuves[]" multiple accept="image/*,.pdf,.doc,.docx">
+                                <small class="form-text text-muted">Re-upload images or documents here. AI damage analysis runs only on image files.</small>
+                            </div>
+                        </div>
+
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary w-100 py-3">{{ isEditConstat|default(false) ? 'Save Constat' : 'Submit Constat And Claim' }}</button>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{{ isEditConstat|default(false) and sinistre ? path('app_sinistre_show', {id: sinistre.id}) : path('app_sinistre_new') }}" class="btn btn-secondary w-100 py-3">
+                                    {{ isEditConstat|default(false) ? 'Back To Claim' : 'Back To Claim Form' }}
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>{% block title %}Credix - Financial Services Website{% endblock %}</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="" name="keywords">
+        <meta content="" name="description">
+
+        <!-- Favicon -->
+        <link href="{{ asset('img/logo.png') }}" rel="icon">
+
+        <!-- Google Web Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Open+Sans:wght@400;500&display=swap" rel="stylesheet">
+
+        <!-- Icon Font Stylesheet -->
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
+
+        <!-- SCSS Source Files: public/scss/bootstrap.scss (custom Bootstrap variables) -->
+        <!-- SCSS Documentation: Customize colors, fonts and Bootstrap variables in public/scss/bootstrap.scss -->
+        
+        <!-- Libraries Stylesheet -->
+        <link href="{{ asset('lib/animate/animate.min.css') }}" rel="stylesheet">
+        <link href="{{ asset('lib/owlcarousel/assets/owl.carousel.min.css') }}" rel="stylesheet">
+
+        <!-- Customized Bootstrap Stylesheet (compiled from SCSS) -->
+        <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
+
+        <!-- Template Stylesheet -->
+        <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+
+        {% block stylesheets %}{% endblock %}
+    </head>
+    <body>
+        <!-- Spinner Start -->
+        <div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+        </div>
+        <!-- Spinner End -->
+
+        <!-- Navbar Start -->
+        <div class="container-fluid fixed-top px-0 wow fadeIn" data-wow-delay="0.1s">
+            <div class="top-bar row gx-0 align-items-center d-none d-lg-flex">
+                <div class="col-lg-6 px-5 text-start">
+                <small><i class="fa fa-map-marker-alt text-primary me-2"></i>Ariana, Tunisia</small>
+                    <small class="ms-4"><i class="fa fa-clock text-primary me-2"></i>9.00 am - 9.00 pm</small>
+                </div>
+                <div class="col-lg-6 px-5 text-end">
+                <small><i class="fa fa-envelope text-primary me-2"></i>contact@credix.tn</small>
+                <small class="ms-4"><i class="fa fa-phone-alt text-primary me-2"></i>+216 99445566</small>
+                </div>
+            </div>
+
+            <nav class="navbar navbar-expand-lg navbar-light py-lg-0 px-lg-5 wow fadeIn" data-wow-delay="0.1s">
+                <a href="{{ path('app_home') }}" class="navbar-brand ms-4 ms-lg-0">
+                <span class="d-flex align-items-center">
+                    <img src="{{ asset('img/logo.png') }}" alt="Credix Logo" style="height: 40px; width: auto; margin-right: 10px;">
+                    <h2 class="display-5 text-primary m-0" style="font-size: 2rem;">Credix</h2>
+                </span>
+            </a>
+                <button type="button" class="navbar-toggler me-4" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarCollapse">
+                    <div class="navbar-nav ms-auto p-4 p-lg-0">
+                        <a href="{{ path('app_home') }}" class="nav-item nav-link active">Home</a>
+                        <a href="{{ path('app_about') }}" class="nav-item nav-link">About</a>
+                        <a href="{{ path('app_service') }}" class="nav-item nav-link">Services</a>
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Compte Bancaire</a>
+                            <div class="dropdown-menu border-light m-0">
+                                {% if app.user %}
+                                    <a href="{{ path('app_compte_bancaire_index') }}" class="dropdown-item">
+                                        <i class="fa fa-list me-2"></i>My Bank Accounts
+                                    </a>
+                                    <a href="{{ path('app_compte_bancaire_new') }}" class="dropdown-item">
+                                        <i class="fa fa-plus me-2"></i>Add Bank Account
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a href="{{ path('app_abonnement_list') }}" class="dropdown-item">
+                                        <i class="fa fa-credit-card me-2"></i>Choisir une abonnement
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a href="{{ path('app_my_subscription') }}" class="dropdown-item">
+                                        <i class="fa fa-credit-card me-2"></i>Mes Abonnement
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                    <a href="{{ path('app_depense_list') }}" class="dropdown-item">
+                                        <i class="fa fa-receipt me-2"></i>My Expenses
+                                    </a>
+                                    
+                                {% else %}
+                                    <a href="{{ path('app_login') }}" class="dropdown-item">
+                                        <i class="fa fa-sign-in me-2"></i>Login to view
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if app.user %}
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Assurance</a>
+                            <div class="dropdown-menu border-light m-0">
+                                <a href="{{ path('app_assurance_list') }}" class="dropdown-item">
+                                    <i class="fa fa-list me-2"></i>Browse Policies
+                                </a>
+                                {% if app.user.role == 'admin' %}
+                                    <a href="{{ path('app_assurance_new') }}" class="dropdown-item">
+                                        <i class="fa fa-plus me-2"></i>New Policy
+                                    </a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a href="{{ path('app_contract_list') }}" class="dropdown-item">
+                                    <i class="fa fa-file-contract me-2"></i>My Contracts
+                                </a>
+                                <a href="{{ path('app_contract_new') }}" class="dropdown-item">
+                                    <i class="fa fa-plus-circle me-2 text-success"></i>
+                                    {% if app.user.role == 'admin' %}
+                                        New Contract
+                                    {% else %}
+                                        Subscribe to Insurance
+                                    {% endif %}
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="{{ path('app_sinistre_list') }}" class="dropdown-item">
+                                    <i class="fa fa-list me-2"></i>My Claims
+                                </a>
+                                <a href="{{ path('app_sinistre_new') }}" class="dropdown-item">
+                                    <i class="fa fa-exclamation-triangle me-2 text-danger"></i>File New Claim
+                                </a>
+                                {% if app.user.role == 'admin' %}
+                                    <div class="dropdown-divider"></div>
+                                    <a href="{{ path('app_admin_contracts') }}" class="dropdown-item">
+                                        <i class="fa fa-cog me-2"></i>Manage All Contracts
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if app.user %}
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Credit</a>
+                            <div class="dropdown-menu border-light m-0">
+                                <a href="{{ path('app_credit_list') }}" class="dropdown-item">
+                                    <i class="fa fa-list me-2"></i>My Credits
+                                </a>
+                                <a href="{{ path('app_credit_apply') }}" class="dropdown-item">
+                                    <i class="fa fa-plus-circle me-2 text-success"></i>Apply for Credit
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="{{ path('app_remboursement_list') }}" class="dropdown-item">
+                                    <i class="fa fa-money-bill-wave me-2 text-info"></i>My Remboursements
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if app.user %}
+                        <div class="nav-item dropdown">
+                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Investments</a>
+                            <div class="dropdown-menu border-light m-0">
+                                <a href="{{ path('app_projet_list') }}" class="dropdown-item">
+                                    <i class="fa fa-briefcase me-2"></i>Browse Projects
+                                </a>
+                                <a href="{{ path('app_investissement_list') }}" class="dropdown-item">
+                                    <i class="fa fa-hand-holding-heart me-2 text-success"></i>My Investments
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <a href="{{ path('app_contact') }}" class="nav-item nav-link">Contact</a>
+                    </div>
+                    
+                    <!-- Authentication Links -->
+                    {% if app.session.get('user_id') %}
+                        <div class="nav-item dropdown ms-2 me-4">
+                            <a href="#" class="nav-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
+                                <i class="fa fa-user-circle me-2"></i>
+                                <span>{{ app.session.get('user_name') }}</span>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-end border-light m-0">
+                                {% if app.user and app.user.role == 'admin' %}
+                                    <a href="{{ path('app_admin_dashboard') }}" class="dropdown-item">
+                                        <i class="fa fa-tachometer-alt me-2"></i>Admin Dashboard
+                                    </a>
+                                    <div class="dropdown-divider"></div>
+                                {% endif %}
+                                <a href="{{ path('app_profile') }}" class="dropdown-item">
+                                    <i class="fa fa-user me-2"></i>My Profile
+                                </a>
+                                <a href="{{ path('app_profile_edit') }}" class="dropdown-item">
+                                    <i class="fa fa-edit me-2"></i>Edit Profile
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-item">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div>
+                                            <small class="text-muted d-block">Bank Balance</small>
+                                            <h6 class="mb-0 text-primary fw-bold">${{ balanceKpi.userBalance|number_format(2, '.', ',') }}</h6>
+                                        </div>
+                                        <a href="{{ path('app_compte_bancaire_index') }}" class="btn btn-sm btn-outline-primary ms-2">
+                                            <i class="fa fa-arrow-right"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <a href="{{ path('app_logout') }}" class="dropdown-item">
+                                    <i class="fa fa-sign-out me-2"></i>Logout
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" class="btn btn-primary btn-sm-square rounded-circle ms-3">
+                            <small class="fa fa-sign-in-alt text-white"></small>
+                        </a>
+                        <a href="{{ path('app_signup') }}" class="btn btn-outline-primary btn-sm ms-3 px-3">
+                            <i class="fa fa-user-plus me-1"></i>Sign Up
+                        </a>
+                    {% endif %}
+
+                  
+                </div>
+            </nav>
+        </div>
+      
+
+        <!-- Navbar End -->
+
+       
+
+        {% block content %}{% endblock %}
+
+        <!-- Footer Start -->
+        <div class="container-fluid bg-dark text-light footer mt-5 wow fadeIn" data-wow-delay="0.1s">
+            <div class="container py-5">
+                <div class="row g-5">
+                    <div class="col-md-6 col-lg-3">
+                        <h5 class="text-light mb-4">Address</h5>
+                        <p><i class="fa fa-map-marker-alt me-3"></i>123 Street, New York, USA</p>
+                        <p><i class="fa fa-phone-alt me-3"></i>+012 345 6789</p>
+                        <p><i class="fa fa-envelope me-3"></i>info@example.com</p>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <h5 class="text-light mb-4">Quick Links</h5>
+                        <a class="btn btn-link" href="">About Us</a>
+                        <a class="btn btn-link" href="">Contact Us</a>
+                        <a class="btn btn-link" href="">Privacy Policy</a>
+                        <a class="btn btn-link" href="">Terms & Condition</a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <h5 class="text-light mb-4">Follow Us</h5>
+                        <div class="d-flex pt-2">
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-twitter"></i></a>
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-youtube"></i></a>
+                            <a class="btn btn-outline-light btn-social" href=""><i class="fab fa-linkedin-in"></i></a>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <h5 class="text-light mb-4">Newsletter</h5>
+                        <p>Subscribe to our newsletter to stay updated</p>
+                        <div class="position-relative mx-auto" style="max-width: 400px;">
+                            <input class="form-control border-0 w-100 py-3 ps-4 pe-5" type="text" placeholder="Your email">
+                            <button type="button" class="btn btn-primary py-2 position-absolute top-0 end-0 mt-2 me-2">SignUp</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="copyright">
+                    <div class="row">
+                        <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                            <a class="border-bottom" href="#"> &copy; Your Site Name, All right reserved.</a>
+                        </div>
+                        <div class="col-md-6 text-center text-md-end">
+                            <div class="footer-menu">
+                                <a href="">Home</a>
+                                <a href="">Cookies</a>
+                                <a href="">Help</a>
+                                <a href="">FQAs</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Footer End -->
+
+        <!-- Back to Top -->
+        <a href="#" class="btn btn-lg btn-primary btn-lg-square back-to-top"><i class="bi bi-arrow-up"></i></a>
+
+        <!-- JavaScript Libraries -->
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="{{ asset('lib/wow/wow.min.js') }}"></script>
+        <script src="{{ asset('lib/easing/easing.min.js') }}"></script>
+        <script src="{{ asset('lib/waypoints/waypoints.min.js') }}"></script>
+        <script src="{{ asset('lib/owlcarousel/owl.carousel.min.js') }}"></script>
+        <script src="{{ asset('lib/counterup/counterup.min.js') }}"></script>
+
+        <!-- Template Javascript -->
+        <script src="{{ asset('js/main.js') }}"></script>
+
+        <!-- Chatbot Widget -->
+        {% include '_partials/chatbot.html.twig' %}
+
+        {% block javascripts %}{% endblock %}
+    </body>
+</html>

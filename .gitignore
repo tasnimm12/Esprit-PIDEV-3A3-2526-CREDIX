@@ -1,0 +1,22 @@
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> IDE ###
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+###< IDE ###
+
+### OS ###
+.DS_Store
+Thumbs.db
+.env
+/vendor/

@@ -1,0 +1,171 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Add Bank Account - Admin{% endblock %}
+
+{% block breadcrumb_current %}Add Bank Account{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-3">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-0">
+                <i class="bi bi-bank2"></i> Add Bank Account
+            </h2>
+            <small class="text-muted">Create a new bank account for a user</small>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    {# Validation Errors #}
+                    {% if errors|length > 0 %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-circle"></i> <strong>Please fix the following errors:</strong>
+                            <ul class="mb-0 mt-2">
+                                {% for error in errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        {# User Selection #}
+                        <div class="mb-3">
+                            <label for="userId" class="form-label">Select User <span class="text-danger">*</span></label>
+                            <select class="form-select" id="userId" name="user_id">
+                                <option value="">-- Choose a user --</option>
+                                {% for user in users %}
+                                    <option value="{{ user.id }}">
+                                        {{ user.prenom }} {{ user.nom }} ({{ user.email }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">The user who owns this bank account</small>
+                        </div>
+
+                        <hr>
+
+                        {# Account Details #}
+                        <h5 class="mb-3"><i class="bi bi-info-circle"></i> Account Details</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="numeroCompte" class="form-label">Account Number <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="numeroCompte" name="numero_compte"
+                                       placeholder="e.g., 1234567890">
+                                <small class="form-text text-muted">Unique account number</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="titulaire" class="form-label">Account Holder <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="titulaire" name="titulaire"
+                                       placeholder="Full name">
+                                <small class="form-text text-muted">Name on the account</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                       placeholder="email@example.com">
+                                <small class="form-text text-muted">Contact email for this account</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="telephone" class="form-label">Phone</label>
+                                <input type="tel" class="form-control" id="telephone" name="telephone"
+                                       placeholder="+1 (555) 000-0000">
+                                <small class="form-text text-muted">Optional phone number</small>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        {# Financial Details #}
+                        <h5 class="mb-3"><i class="bi bi-cash-coin"></i> Financial Details</h5>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="solde" class="form-label">Initial Balance <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="solde" name="solde"
+                                       value="0" placeholder="0.00">
+                                <small class="form-text text-muted">Starting balance (e.g., 1000.50)</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="devise" class="form-label">Currency <span class="text-danger">*</span></label>
+                                <select class="form-select" id="devise" name="devise">
+                                    <option value="USD">USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="TND">TND (د.ت)</option>
+                                </select>
+                                <small class="form-text text-muted">Currency of this account</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="typeCompte" class="form-label">Account Type <span class="text-danger">*</span></label>
+                            <select class="form-select" id="typeCompte" name="type_compte">
+                                <option value="">-- Select Account Type --</option>
+                                <option value="Checking">Checking</option>
+                                <option value="Savings">Savings</option>
+                                <option value="Money Market">Money Market</option>
+                                <option value="Investment">Investment</option>
+                                <option value="Business">Business</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <small class="form-text text-muted">Type of bank account</small>
+                        </div>
+
+                        <hr>
+
+                        {# Status #}
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="actif" name="actif" value="1" checked>
+                                <label class="form-check-label" for="actif">
+                                    Active Account
+                                </label>
+                            </div>
+                            <small class="form-text text-muted">Uncheck to create an inactive account</small>
+                        </div>
+
+                        <hr class="my-4">
+
+                        {# Buttons #}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Create Account
+                            </button>
+                            <a href="{{ path('app_admin_bank_accounts') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-lightbulb"></i> Tips</h5>
+                    <ul class="small">
+                        <li>All marked fields with <span class="text-danger">*</span> are required</li>
+                        <li>Account number must be unique per user</li>
+                        <li>Email should be a valid format</li>
+                        <li>Balance can be updated later during editing</li>
+                        <li>Inactive accounts are hidden from regular users</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

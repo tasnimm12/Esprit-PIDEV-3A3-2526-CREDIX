@@ -1,0 +1,131 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Upgrade Abonnement - Credix{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <!-- Header -->
+                    <div class="text-center mb-5">
+                        <h2 class="display-6 mb-2">Upgrade Your Plan</h2>
+                        <p class="text-muted">Choose a better plan to unlock more features</p>
+                    </div>
+
+                    {% if currentAbonnements|length > 0 %}
+                        <!-- Current Plans -->
+                        <div class="alert alert-info border-0 shadow-sm mb-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fa fa-star me-3 text-warning" style="font-size: 24px;"></i>
+                                <div>
+                                    <h5 class="mb-0">Your Current Plans ({{ currentAbonnements|length }})</h5>
+                                    <small class="text-muted">You already have these subscriptions</small>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning border-0 shadow-sm mb-4">
+                            <i class="fa fa-info-circle me-2"></i>
+                            You don't have any active subscriptions. Add a plan below!
+                        </div>
+                    {% endif %}
+
+                    <!-- Available Plans -->
+                    <div class="row g-4">
+                        {% if abonnements|length > 0 %}
+                            {% for abonnement in abonnements %}
+                                <div class="col-md-6">
+                                    <div class="card border-0 shadow-sm h-100 transition" style="border-top: 4px solid {{ loop.index == 1 ? '#28a745' : '#007bff' }};">
+                                        <!-- Badge -->
+                                        {% if currentAbonnements.contains(abonnement) %}
+                                            <div class="position-absolute top-0 end-0 m-3">
+                                                <span class="badge bg-success">Current</span>
+                                            </div>
+                                        {% else %}
+                                            <div class="position-absolute top-0 end-0 m-3">
+                                                <span class="badge bg-primary">Add</span>
+                                            </div>
+                                        {% endif %}
+
+                                        <div class="card-body">
+                                            <!-- Plan Name -->
+                                            <h5 class="card-title mb-3">{{ abonnement.nomAbonnement }}</h5>
+
+                                            <!-- Price -->
+                                            <div class="mb-4">
+                                                <span class="display-5 text-primary fw-bold">${{ abonnement.prixMensuel|number_format(2) }}</span>
+                                                <span class="text-muted">/month</span>
+                                            </div>
+
+                                            <!-- Description -->
+                                            {% if abonnement.description %}
+                                                <p class="text-muted small mb-4">{{ abonnement.description }}</p>
+                                            {% endif %}
+
+                                            <!-- Features (if available) -->
+                                            <ul class="list-unstyled mb-4 small">
+                                                <li class="mb-2">
+                                                    <i class="fa fa-check text-success me-2"></i>
+                                                    Premium Support
+                                                </li>
+                                                <li class="mb-2">
+                                                    <i class="fa fa-check text-success me-2"></i>
+                                                    Advanced Analytics
+                                                </li>
+                                                <li class="mb-2">
+                                                    <i class="fa fa-check text-success me-2"></i>
+                                                    Priority Processing
+                                                </li>
+                                            </ul>
+
+                                            <!-- Subscribe Button -->
+                                            {% if currentAbonnements.contains(abonnement) %}
+                                                <button class="btn btn-outline-primary w-100" disabled>
+                                                    <i class="fa fa-check me-2"></i>Already Subscribed
+                                                </button>
+                                            {% else %}
+                                                <a href="{{ path('app_abonnement_subscribe', {'id': abonnement.idAbonnement}) }}" class="btn btn-primary w-100">
+                                                    <i class="fa fa-plus me-2"></i>Add Plan
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-info border-0">
+                                    <i class="fa fa-info-circle me-2"></i>
+                                    No other plans available to upgrade to.
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Back Button -->
+                    <div class="mt-5 text-center">
+                        <a href="{{ path('app_profile') }}" class="btn btn-outline-secondary">
+                            <i class="fa fa-arrow-left me-2"></i>Back to Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .card.transition {
+            transition: all 0.3s ease;
+        }
+
+        .card.transition:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .card.transition:hover .card-title {
+            color: #007bff;
+        }
+    </style>
+{% endblock %}

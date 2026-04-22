@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Message from Insurance Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            border-bottom: 3px solid #007bff;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #007bff;
+            font-size: 24px;
+        }
+        .message-content {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+            line-height: 1.8;
+        }
+        .admin-info {
+            background-color: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0c5460;
+        }
+        .footer {
+            border-top: 1px solid #ddd;
+            margin-top: 30px;
+            padding-top: 15px;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Message from Insurance Management System</h1>
+        </div>
+
+        <p>Dear Valued Client,</p>
+
+        <div class="message-content">
+            <strong>{{ subject }}</strong>
+            <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">
+            {# Allow HTML in the message body #}
+            {{ body|raw }}
+        </div>
+
+        {% if adminName %}
+        <div class="admin-info">
+            <strong>Message sent by:</strong> {{ adminName }}<br>
+            <strong>From:</strong> Insurance Management System Admin Team
+        </div>
+        {% endif %}
+
+        <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
+
+        <div class="footer">
+            <p>This is an automated message from the Insurance Claims System.</p>
+            <p>&copy; 2026 Insurance Management System. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

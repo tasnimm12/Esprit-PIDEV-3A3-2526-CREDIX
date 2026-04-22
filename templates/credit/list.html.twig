@@ -1,0 +1,304 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}My Credits - Credix{% endblock %}
+
+{% block content %}
+<div class="credits-container" style="margin-top: 150px;">
+    <!-- Header Section -->
+    <div class="credits-header">
+        <div class="container-xxl">
+            <div class="row align-items-center mb-4">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-2" style="color: #1a3a52;">
+                        <i class="fa fa-credit-card me-3" style="color: #f39c12;"></i>Credit Applications
+                    </h1>
+                    <p class="text-muted mb-0">Manage and track your credit applications</p>
+                </div>
+                <div class="col-lg-4 text-end">
+                    <a href="{{ path('app_credit_apply') }}" class="btn btn-lg" style="background: linear-gradient(135deg, #f39c12 0%, #d68910 100%); color: white; border: none; box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);">
+                        <i class="fa fa-plus me-2"></i>Apply for Credit
+                    </a>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            {% if credits|length > 0 %}
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon approved-credits">
+                            <i class="fa fa-check-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Approved</h6>
+                            <p class="stat-number">{{ approvedCount }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon pending-credits">
+                            <i class="fa fa-hourglass-half"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Pending</h6>
+                            <p class="stat-number">{{ pendingCount }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon rejected-credits">
+                            <i class="fa fa-times-circle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Rejected</h6>
+                            <p class="stat-number">{{ rejectedCount }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-icon total-credits">
+                            <i class="fa fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h6 class="text-muted small">Total Approved</h6>
+                            <p class="stat-number">{{ (totalAmount|number_format(0, '.', ','))|slice(0, 5) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container-xxl py-5">
+        <div class="container">
+
+            {% if app.flashes %}
+                {% for type, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ type == 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            {% endif %}
+
+            <div class="mb-4">
+                <a href="{{ path('app_credit_apply') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Apply for New Credit
+                </a>
+            </div>
+
+            <!-- Statistics -->
+            {% if credits|length > 0 %}
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Approved</h6>
+                            <h3 class="text-success">{{ approvedCount }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Pending</h6>
+                            <h3 class="text-warning">{{ pendingCount }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-danger">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Rejected</h6>
+                            <h3 class="text-danger">{{ rejectedCount }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <h6 class="text-muted">Total Approved</h6>
+                            <h3 class="text-primary">{{ totalAmount|number_format(2, '.', ',') }} D.T</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Search, Filter, and Sort Section -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <!-- Search -->
+                        <div class="col-md-3">
+                            <input type="text" name="search" class="form-control" placeholder="Search credits..." value="{{ search }}">
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="col-md-2">
+                            <select name="statut" class="form-select">
+                                <option value="">All Status</option>
+                                {% for stat in statutOptions %}
+                                <option value="{{ stat }}" {% if statut == stat %}selected{% endif %}>{{ stat }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Sort By -->
+                        <div class="col-md-2">
+                            <select name="sort" class="form-select">
+                                <option value="date_demande" {% if sortBy == 'date_demande' %}selected{% endif %}>Date</option>
+                                <option value="montant" {% if sortBy == 'montant' %}selected{% endif %}>Amount</option>
+                                <option value="type" {% if sortBy == 'type' %}selected{% endif %}>Type</option>
+                                <option value="statut" {% if sortBy == 'statut' %}selected{% endif %}>Status</option>
+                            </select>
+                        </div>
+
+                        <!-- Sort Order -->
+                        <div class="col-md-2">
+                            <select name="order" class="form-select">
+                                <option value="desc" {% if sortOrder == 'desc' %}selected{% endif %}>Descending</option>
+                                <option value="asc" {% if sortOrder == 'asc' %}selected{% endif %}>Ascending</option>
+                            </select>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i> Filter
+                            </button>
+                        </div>
+
+                        <div class="col-md-1">
+                            <a href="{{ path('app_credit_list') }}" class="btn btn-secondary w-100">
+                                <i class="fas fa-redo"></i> Reset
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if credits is empty %}
+                <div class="alert alert-info">
+                    <strong>No credits found.</strong> <a href="{{ path('app_credit_apply') }}">Apply for your first credit</a>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Date</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Interest Rate</th>
+                                <th>Status</th>
+                                <th>Total Amount</th>
+                                <th>Monthly Payment</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for credit in credits %}
+                                <tr>
+                                    <td>{{ credit.getDateDemande()|date('d/m/Y') }}</td>
+                                    <td>{{ credit.getMontantDemande()|number_format(2, '.', ',') }} D.T</td>
+                                    <td>{{ credit.getTypeCredit() }}</td>
+                                    <td>{{ credit.getTauxInteret()|number_format(2) }}%</td>
+                                    <td>
+                                        {% set statusClass = credit.getStatutCredit() == 'ACCEPTE' ? 'success' : (credit.getStatutCredit() == 'REFUSE' ? 'danger' : (credit.getStatutCredit() == 'EN_ATTENTE' ? 'warning' : (credit.getStatutCredit() == 'TERMINE' ? 'secondary' : 'info'))) %}
+                                        <span class="badge bg-{{ statusClass }}">{{ credit.getStatutCredit()|replace({'_': ' '}) }}</span>
+                                    </td>
+                                    <td>{{ credit.getMontantTotal()|number_format(2, '.', ',') }} D.T</td>
+                                    <td>{{ credit.getMensualite()|number_format(2, '.', ',') }} D.T</td>
+                                    <td>
+                                        <a href="{{ path('app_credit_view', {id: credit.getIdCredit()}) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .credits-container {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+
+    .credits-header {
+        background: white;
+        padding: 40px 0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        transition: all 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 24px;
+    }
+
+    .stat-icon.approved-credits {
+        background: #d4edda;
+        color: #28a745;
+    }
+
+    .stat-icon.pending-credits {
+        background: #fff3cd;
+        color: #ff9800;
+    }
+
+    .stat-icon.rejected-credits {
+        background: #f8d7da;
+        color: #dc3545;
+    }
+
+    .stat-icon.total-credits {
+        background: #ffe5b4;
+        color: #f39c12;
+    }
+
+    .stat-number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1a3a52;
+        margin: 0;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f5f5f5;
+    }
+</style>
+{% endblock %}

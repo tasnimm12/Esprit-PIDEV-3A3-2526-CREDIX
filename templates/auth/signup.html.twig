@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Sign Up - Credix{% endblock %}
+
+{% block content %}
+    <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-7 col-lg-6">
+                    <div class="card shadow-lg border-0">
+                        <div class="card-body p-5">
+                            <!-- Header -->
+                            <div class="text-center mb-4">
+                                <h2 class="display-6 mb-2">Create Account</h2>
+                                <p class="text-muted">Join Credix and manage your finances</p>
+                            </div>
+
+                            <!-- Error Messages -->
+                            {% if errors is not empty %}
+                                {% for error in errors %}
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <i class="fa fa-exclamation-circle me-2"></i>
+                                        {{ error }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                            <!-- Sign Up Form -->
+                            <form method="POST" action="{{ path('app_signup') }}">
+                                <!-- First Name -->
+                                <div class="mb-3">
+                                    <label for="prenom" class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-lg" id="prenom" name="prenom" placeholder="John">
+                                    <small class="form-text text-muted">2-100 characters, letters only</small>
+                                </div>
+
+                                <!-- Last Name -->
+                                <div class="mb-3">
+                                    <label for="nom" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-lg" id="nom" name="nom" placeholder="Doe">
+                                    <small class="form-text text-muted">2-100 characters, letters only</small>
+                                </div>
+
+                                <!-- Email -->
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-lg" id="email" name="email" placeholder="john.doe@example.com">
+                                    <small class="form-text text-muted">Valid email address required (e.g., name@example.com)</small>
+                                </div>
+
+                                <!-- Phone (Required) -->
+                                <div class="mb-3">
+                                    <label for="telephone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control form-control-lg" id="telephone" name="telephone" placeholder="12345678">
+                                    <small class="form-text text-muted">Exactly 8 digits</small>
+                                </div>
+
+                                <!-- Password -->
+                                <div class="mb-3">
+                                    <label for="mot_de_passe" class="form-label">Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control form-control-lg" id="mot_de_passe" name="mot_de_passe" placeholder="At least 8 characters">
+                                    <small class="form-text text-muted">Minimum 8 characters (recommended: mix of letters, numbers, symbols)</small>
+                                </div>
+
+                                <!-- Confirm Password -->
+                                <div class="mb-4">
+                                    <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                    <input type="password" class="form-control form-control-lg" id="confirm_password" name="confirm_password" placeholder="Re-enter your password">
+                                    <small class="form-text text-muted">Passwords must match</small>
+                                </div>
+
+                                <!-- Terms Checkbox -->
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" type="checkbox" id="terms" name="terms">
+                                    <label class="form-check-label" for="terms">
+                                        I agree to the <a href="#" class="text-primary text-decoration-none">Terms of Service</a> 
+                                        and <a href="#" class="text-primary text-decoration-none">Privacy Policy</a>
+                                    </label>
+                                </div>
+
+                                <!-- Sign Up Button -->
+                                <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                                    <i class="fa fa-user-plus me-2"></i>Create Account
+                                </button>
+                            </form>
+
+                            <!-- Divider -->
+                            <div class="d-flex align-items-center mb-4">
+                                <hr class="flex-grow-1">
+                                <span class="mx-3 text-muted small">OR</span>
+                                <hr class="flex-grow-1">
+                            </div>
+
+                            <!-- Google Sign Up -->
+                            <a href="{{ path('connect_google') }}" class="btn btn-outline-secondary btn-lg w-100 mb-3">
+                                <i class="fab fa-google me-2"></i>Sign up with Google
+                            </a>
+
+                            <!-- Already Have Account -->
+                            <div class="text-center">
+                                <p class="text-muted mb-0">Already have an account? 
+                                    <a href="{{ path('app_login') }}" class="text-primary fw-bold text-decoration-none">Sign in here</a>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Features -->
+                    <div class="row mt-5 text-center text-muted small">
+                        <div class="col-md-4">
+                            <i class="fa fa-shield fa-2x text-primary mb-2"></i>
+                            <p>Secure & Encrypted</p>
+                        </div>
+                        <div class="col-md-4">
+                            <i class="fa fa-mobile fa-2x text-primary mb-2"></i>
+                            <p>Mobile Friendly</p>
+                        </div>
+                        <div class="col-md-4">
+                            <i class="fa fa-check fa-2x text-primary mb-2"></i>
+                            <p>Instant Setup</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Edit Expense - Admin{% endblock %}
+
+{% block breadcrumb_current %}Edit Expense{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="mb-4">
+        <h1 class="h3 mb-0">Edit Expense</h1>
+        <p class="text-muted">Update expense information</p>
+    </div>
+
+    <!-- Messages -->
+    {% if errors %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa fa-exclamation-circle"></i> <strong>Errors occurred:</strong>
+            <ul class="mb-0 mt-2">
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endif %}
+
+    <!-- Form Card -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Expense #{{ depense.id }}</h6>
+                <span class="badge bg-secondary">Created: {{ depense.createdAt|date('d/m/Y H:i') }}</span>
+            </div>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST" class="row g-4">
+                <!-- User Selection -->
+                <div class="col-md-6">
+                    <label for="user_id" class="form-label">User <span class="text-danger">*</span></label>
+                    <select name="user_id" id="user_id" class="form-select">
+                        <option value="">Select a user...</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}" {% if user.id == depense.utilisateur.id %}selected{% endif %}>
+                                {{ user.prenom }} {{ user.nom }} ({{ user.email }})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Category -->
+                <div class="col-md-6">
+                    <label for="categorie" class="form-label">Category <span class="text-danger">*</span></label>
+                    <input type="text" name="categorie" id="categorie" class="form-control" value="{{ depense.categorie }}" placeholder="e.g., Office, Travel, Food">
+                </div>
+
+                <!-- Bank Account -->
+                <div class="col-md-6">
+                    <label for="compte_id" class="form-label">Bank Account <span class="text-danger">*</span></label>
+                    <select name="compte_id" id="compte_id" class="form-select">
+                        <option value="">Select a bank account...</option>
+                        {% for account in accounts %}
+                            <option value="{{ account.id }}" {% if account.id == depense.compteId %}selected{% endif %}>
+                                {{ account.titulaire }} - {{ account.numeroCompte|slice(-4) }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Description -->
+                <div class="col-12">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea name="description" id="description" class="form-control" rows="3" placeholder="Details about the expense...">{{ depense.description }}</textarea>
+                </div>
+
+                <!-- Amount -->
+                <div class="col-md-4">
+                    <label for="montant" class="form-label">Amount <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" name="montant" id="montant" class="form-control" value="{{ depense.montant }}" placeholder="0.00">
+                    </div>
+                </div>
+
+                <!-- Date -->
+                <div class="col-md-4">
+                    <label for="date_depense" class="form-label">Expense Date <span class="text-danger">*</span></label>
+                    <input type="date" name="date_depense" id="date_depense" class="form-control" value="{{ depense.dateDepense|date('Y-m-d') }}">
+                </div>
+
+                <!-- Payment Method -->
+                <div class="col-md-4">
+                    <label for="mode_paiement" class="form-label">Payment Method</label>
+                    <select name="mode_paiement" id="mode_paiement" class="form-select">
+                        <option value="">Select method...</option>
+                        <option value="Cash" {% if depense.modePaiement == 'Cash' %}selected{% endif %}>Cash</option>
+                        <option value="Card" {% if depense.modePaiement == 'Card' %}selected{% endif %}>Card</option>
+                        <option value="Bank Transfer" {% if depense.modePaiement == 'Bank Transfer' %}selected{% endif %}>Bank Transfer</option>
+                        <option value="Check" {% if depense.modePaiement == 'Check' %}selected{% endif %}>Check</option>
+                        <option value="Other" {% if depense.modePaiement == 'Other' %}selected{% endif %}>Other</option>
+                    </select>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa fa-save"></i> Update Expense
+                    </button>
+                    <a href="{{ path('app_admin_depenses') }}" class="btn btn-outline-secondary">
+                        <i class="fa fa-arrow-left"></i> Cancel
+                    </a>
+                    <a href="{{ path('app_admin_depense_delete', {id: depense.id}) }}" class="btn btn-outline-danger ms-auto" onclick="return confirm('Are you sure you want to delete this expense?')">
+                        <i class="fa fa-trash"></i> Delete
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
