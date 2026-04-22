@@ -24,8 +24,8 @@ class DamageAnalysis
 
     #[ORM\Column(type: 'string', length: 50)]
     #[Assert\NotBlank(message: 'Damage severity is required')]
-    #[Assert\Choice(choices: ['minor', 'moderate', 'severe', 'critical'], message: 'Invalid severity level')]
-    private $severity; // minor, moderate, severe, critical
+    #[Assert\Choice(choices: ['minor', 'moderate', 'severe', 'critical', 'MINOR', 'MEDIUM', 'MAJOR'], message: 'Invalid severity level')]
+    private $severity; // minor, moderate, severe, critical, MINOR, MEDIUM, MAJOR
 
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank(message: 'Damage type is required')]
@@ -92,9 +92,10 @@ class DamageAnalysis
     public function getSeverityColor(): string
     {
         return match($this->severity) {
-            'minor' => 'success',
+            'minor', 'MINOR' => 'success',
             'moderate' => 'warning',
-            'severe' => 'danger',
+            'MEDIUM' => 'warning',
+            'severe', 'MAJOR' => 'danger',
             'critical' => 'dark',
             default => 'secondary'
         };
@@ -104,9 +105,10 @@ class DamageAnalysis
     public function getSeverityIcon(): string
     {
         return match($this->severity) {
-            'minor' => 'fa-check-circle',
+            'minor', 'MINOR' => 'fa-check-circle',
             'moderate' => 'fa-exclamation-circle',
-            'severe' => 'fa-times-circle',
+            'MEDIUM' => 'fa-exclamation-circle',
+            'severe', 'MAJOR' => 'fa-times-circle',
             'critical' => 'fa-skull',
             default => 'fa-question-circle'
         };

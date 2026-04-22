@@ -3,6 +3,15 @@
 {% block title %}{{ title }} - Credix{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+    #mapDisplay {
+        width: 100%;
+        height: 300px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+</style>
 <div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
     <div class="container">
         <div class="row mb-4">
@@ -15,6 +24,15 @@
                 </a>
             </div>
         </div>
+
+        {% for type, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ type in ['success', 'danger', 'warning', 'info'] ? type : 'secondary' }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
 
         <div class="row">
             <div class="col-lg-8">
@@ -61,12 +79,35 @@
                             ({{ sinistre.contrat.assurance.typeAssurance ?? 'N/A' }})
                         </div>
 
+                        {% if showConstatButton %}
+                            <div class="mb-3">
+                                <a href="{{ path('app_sinistre_constat_edit', {id: sinistre.id}) }}" class="btn btn-outline-primary">
+                                    <i class="fa fa-car-crash me-2"></i>{{ hasConstat ? 'Edit Constat' : 'Fill Constat' }}
+                                </a>
+                                <small class="text-muted d-block mt-2">This button is available only for auto insurance claims.</small>
+                            </div>
+                        {% endif %}
+
                         <hr>
 
                         <div class="mb-3">
                             <strong>Claim Description:</strong><br>
                             <p class="text-muted" style="white-space: pre-wrap;">{{ sinistre.description }}</p>
                         </div>
+
+                        {% if sinistre.latitude and sinistre.longitude %}
+                            <hr>
+                            <div class="mb-3">
+                                <strong>Incident Location:</strong><br>
+                                {% if sinistre.locationAddress %}
+                                    <p class="text-muted mb-2">{{ sinistre.locationAddress }}</p>
+                                {% endif %}
+                                <div id="mapDisplay" style="width: 100%; height: 300px; border: 1px solid #ddd; border-radius: 4px;"></div>
+                                <small class="text-muted d-block mt-2">
+                                    Coordinates: {{ sinistre.latitude|round(4) }}, {{ sinistre.longitude|round(4) }}
+                                </small>
+                            </div>
+                        {% endif %}
 
                         {% if sinistre.preuves|length > 0 %}
                             <hr>
@@ -95,6 +136,16 @@
                                     {% endfor %}
                                 </div>
                             </div>
+
+                            {% if sinistre.signature %}
+                            <hr>
+                            <div class="mb-3">
+                                <strong>Claimant Signature:</strong><br>
+                                <div class="mt-3">
+                                    <img src="{{ sinistre.signature }}" alt="Claimant Signature" style="border: 1px solid #ddd; border-radius: 4px; padding: 10px; background-color: #f9f9f9; max-width: 300px;">
+                                </div>
+                            </div>
+                            {% endif %}
                         {% endif %}
 
                         <!-- AI Damage Analysis Section -->
@@ -224,4 +275,29 @@
         </div>
     </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mapDisplay = document.getElementById('mapDisplay');
+        if (mapDisplay) {
+            {% if sinistre.latitude and sinistre.longitude %}
+                // Initialize Leaflet map
+                const map = L.map(mapDisplay).setView([{{ sinistre.latitude }}, {{ sinistre.longitude }}], 15);
+                
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                // Add marker for the incident location
+                L.marker([{{ sinistre.latitude }}, {{ sinistre.longitude }}]).addTo(map)
+                    .bindPopup('Incident Location')
+                    .openPopup();
+            {% endif %}
+        }
+    });
+</script>
+
 {% endblock %}

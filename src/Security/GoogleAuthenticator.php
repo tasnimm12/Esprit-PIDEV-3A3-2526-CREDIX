@@ -3,6 +3,7 @@
 namespace App\Security;
 
 use App\Entity\Utilisateur;
+use App\Service\LoginHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,13 +19,15 @@ class GoogleAuthenticator extends AbstractAuthenticator
 {
     private $em;
     private $logger;
+    private $loginHistoryService;
     private $googleClientId;
     private $googleClientSecret;
 
-    public function __construct(EntityManagerInterface $em, LoggerInterface $logger)
+    public function __construct(EntityManagerInterface $em, LoggerInterface $logger, LoginHistoryService $loginHistoryService)
     {
         $this->em = $em;
         $this->logger = $logger;
+        $this->loginHistoryService = $loginHistoryService;
         $this->googleClientId = $_ENV['OAUTH_GOOGLE_CLIENT_ID'] ?? '';
         $this->googleClientSecret = $_ENV['OAUTH_GOOGLE_CLIENT_SECRET'] ?? '';
     }
@@ -104,6 +107,12 @@ class GoogleAuthenticator extends AbstractAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        $user = $token->getUser();
+
+        if ($user instanceof Utilisateur) {
+            $this->loginHistoryService->recordLogin($user);
+        }
+
         return new Response(null, Response::HTTP_FOUND, ['Location' => '/']);
     }
 

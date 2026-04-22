@@ -5,18 +5,23 @@ namespace App\Controller;
 use App\Entity\Sinistre;
 use App\Entity\ContratAssurance;
 use App\Entity\SinistrePreuve;
+use App\Service\ClaimContractCompatibilityService;
 use App\Service\LocalImageAnalysisService;
+use App\Service\DamageDetection\DamageDetectionOrchestrator;
 use App\Service\ClaimNotificationService;
+use App\Service\ClaimCoverageAnalysisService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/sinistre')]
 class SinistreController extends AbstractController
 {
+    private const CONSTAT_DRAFT_SESSION_KEY = 'sinistre.constat_draft';
 
     #[Route('/', name: 'app_sinistre_list')]
     public function list(Request $request, EntityManagerInterface $em): Response
@@ -97,7 +102,7 @@ class SinistreController extends AbstractController
     }
 
     #[Route('/new', name: 'app_sinistre_new')]
-    public function new(Request $request, EntityManagerInterface $em, ValidatorInterface $validator, LocalImageAnalysisService $analysisService): Response
+    public function new(Request $request, EntityManagerInterface $em, ValidatorInterface $validator, DamageDetectionOrchestrator $orchestrator, LocalImageAnalysisService $analysisService, ClaimContractCompatibilityService $claimCompatibilityService, ClaimNotificationService $notificationService): Response
     {
         if (!$this->getUser()) {
             return $this->redirectToRoute('app_login');
@@ -193,6 +198,31 @@ class SinistreController extends AbstractController
                 }
             }
 
+            if (empty($errors) && isset($contrat)) {
+                $compatibility = $claimCompatibilityService->evaluate(
+                    $data['description'] ?? '',
+                    $contrat->getAssurance()?->getTypeAssurance()
+                );
+
+                if (!$compatibility['is_compatible']) {
+                    $message = $compatibility['message'] ?? 'This claim does not match the selected insurance contract.';
+                    $errors[] = $message;
+                    $this->addFlash('warning', $message);
+                }
+            }
+
+            if (empty($errors) && isset($contrat)) {
+                $detectedType = $claimCompatibilityService->detectClaimTypeFromDescription($data['description'] ?? '');
+                $contractType = strtoupper((string) $contrat->getAssurance()?->getTypeAssurance());
+
+                if ($contractType === 'AUTO' && $detectedType === 'AUTO') {
+                    $this->storeConstatDraft($request, $data, $uploadedFiles);
+                    $this->addFlash('info', 'Auto accident detected. Please complete the constat form to continue your claim.');
+
+                    return $this->redirectToRoute('app_sinistre_constat_new');
+                }
+            }
+
             // Validate file uploads if any
             $uploadedFiles = $request->files->get('preuves');
             if ($uploadedFiles) {
@@ -228,6 +258,41 @@ class SinistreController extends AbstractController
                 }
             }
 
+            // Validate location data
+            $latitude = isset($data['latitude']) ? trim($data['latitude']) : '';
+            $longitude = isset($data['longitude']) ? trim($data['longitude']) : '';
+            $locationAddress = isset($data['location_address']) ? trim($data['location_address']) : '';
+            
+            if (empty($latitude) || empty($longitude)) {
+                $errors[] = 'Incident location is required. Please select a location on the map';
+            } else {
+                // Validate latitude and longitude are valid numbers
+                if (!is_numeric($latitude) || !is_numeric($longitude)) {
+                    $errors[] = 'Invalid location coordinates';
+                } else {
+                    $lat = (float)$latitude;
+                    $lng = (float)$longitude;
+                    
+                    // Validate latitude range (-90 to 90)
+                    if ($lat < -90 || $lat > 90) {
+                        $errors[] = 'Invalid latitude value';
+                    }
+                    
+                    // Validate longitude range (-180 to 180)
+                    if ($lng < -180 || $lng > 180) {
+                        $errors[] = 'Invalid longitude value';
+                    }
+                }
+            }
+
+            // Validate signature
+            $signature = isset($data['signature']) ? trim($data['signature']) : '';
+            if (empty($signature)) {
+                $errors[] = 'Signature is required. Please sign the form';
+            } elseif (!preg_match('/^data:image\/png;base64,/', $signature)) {
+                $errors[] = 'Invalid signature format';
+            }
+
             if (empty($errors)) {
                 $sinistre = new Sinistre();
                 $sinistre->setUtilisateur($this->getUser());
@@ -235,6 +300,14 @@ class SinistreController extends AbstractController
                 $sinistre->setDescription(trim($data['description']));
                 $sinistre->setDateSinistre(new \DateTime($dateStr));
                 $sinistre->setStatut('EN_ATTENTE');
+                $sinistre->setLatitude((float)$latitude);
+                $sinistre->setLongitude((float)$longitude);
+                if (!empty($locationAddress)) {
+                    $sinistre->setLocationAddress($locationAddress);
+                }
+                if (!empty($signature)) {
+                    $sinistre->setSignature($signature);
+                }
 
                 // Validate entity using Symfony validator
                 $validationErrors = $validator->validate($sinistre);
@@ -251,18 +324,25 @@ class SinistreController extends AbstractController
                 $em->persist($sinistre);
                 $em->flush();
 
+                $imageUploadCount = 0;
                 // Handle file uploads
                 if ($uploadedFiles) {
                     foreach ($uploadedFiles as $file) {
                         if ($file->getSize() > 0) {
-                            $this->handleFileUpload($file, $sinistre, $em, $analysisService);
+                            $extension = strtolower((string) $file->getClientOriginalExtension());
+                            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+                                $imageUploadCount++;
+                            }
+                            $this->handleFileUpload($file, $sinistre, $em, $analysisService, $orchestrator);
                         }
                     }
                 }
 
                 $this->addFlash('success', 'Claim filed successfully. Claim #' . $sinistre->getId());
+                $this->addAnalysisFlash($sinistre, $em, $imageUploadCount);
+                $notificationService->sendNewClaimNotificationToAdmins($sinistre);
 
-                return $this->redirectToRoute('app_sinistre_show', ['id' => $sinistre->getId()]);
+                return $this->redirect($this->generateUrl('app_sinistre_show', ['id' => $sinistre->getId()]) . '#damage-analysis');
             } else {
                 // Re-render form with validation errors
                 return $this->render('sinistre/form.html.twig', [
@@ -282,8 +362,263 @@ class SinistreController extends AbstractController
         ]);
     }
 
+    #[Route('/constat/new', name: 'app_sinistre_constat_new')]
+    public function constatNew(Request $request, EntityManagerInterface $em, ValidatorInterface $validator, DamageDetectionOrchestrator $orchestrator, LocalImageAnalysisService $analysisService, ClaimNotificationService $notificationService): Response
+    {
+        if (!$this->getUser()) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $draft = $request->getSession()->get(self::CONSTAT_DRAFT_SESSION_KEY);
+        if (!is_array($draft) || (($draft['user_id'] ?? null) !== $this->getUser()->getId())) {
+            $this->addFlash('warning', 'Start from the claim form before filling a constat.');
+            return $this->redirectToRoute('app_sinistre_new');
+        }
+
+        $contrat = $em->getRepository(ContratAssurance::class)->find((int) ($draft['contrat_id'] ?? 0));
+        if (!$contrat || $contrat->getUtilisateur()?->getId() !== $this->getUser()->getId() || $contrat->getStatut() !== 'ACTIF') {
+            $request->getSession()->remove(self::CONSTAT_DRAFT_SESSION_KEY);
+            $this->addFlash('error', 'The selected auto insurance contract is no longer available.');
+            return $this->redirectToRoute('app_sinistre_new');
+        }
+
+        if ($request->isMethod('POST')) {
+            $data = $request->request->all();
+            $errors = [];
+            $uploadedFiles = $request->files->get('preuves');
+            $uploadedFiles = $request->files->get('preuves');
+            $uploadedFiles = $request->files->get('preuves');
+
+            if (trim((string) ($data['other_driver_name'] ?? '')) === '') {
+                $errors[] = 'Other driver name is required for the constat.';
+            }
+
+            if (trim((string) ($data['other_vehicle_plate'] ?? '')) === '') {
+                $errors[] = 'Other vehicle plate is required for the constat.';
+            }
+
+            if (trim((string) ($data['accident_circumstances'] ?? '')) === '') {
+                $errors[] = 'Please describe the accident circumstances in the constat.';
+            }
+
+            if ($uploadedFiles) {
+                $maxFiles = 5;
+                $maxSize = 25 * 1024 * 1024;
+                $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
+                if (count($uploadedFiles) > $maxFiles) {
+                    $errors[] = "Maximum $maxFiles files allowed";
+                }
+
+                foreach ($uploadedFiles as $file) {
+                    if ($file->getSize() === 0) {
+                        continue;
+                    }
+
+                    if ($file->getSize() > $maxSize) {
+                        $errors[] = 'File "' . htmlspecialchars($file->getClientOriginalName(), ENT_QUOTES) . '" exceeds 25MB limit';
+                    }
+
+                    if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
+                        $errors[] = 'File type not allowed: ' . htmlspecialchars($file->getClientOriginalName(), ENT_QUOTES) . '. Only images, PDF, and Word docs are allowed.';
+                    }
+                }
+            }
+
+            if (empty($errors)) {
+                $sinistre = new Sinistre();
+                $sinistre->setUtilisateur($this->getUser());
+                $sinistre->setContrat($contrat);
+                $sinistre->setDescription($this->buildConstatDescription($draft, $data));
+                $sinistre->setDateSinistre(new \DateTime((string) $draft['date_sinistre']));
+                $sinistre->setStatut('EN_ATTENTE');
+                $sinistre->setLatitude((float) $draft['latitude']);
+                $sinistre->setLongitude((float) $draft['longitude']);
+
+                if (!empty($draft['location_address'])) {
+                    $sinistre->setLocationAddress($draft['location_address']);
+                }
+
+                if (!empty($draft['signature'])) {
+                    $sinistre->setSignature($draft['signature']);
+                }
+
+                $validationErrors = $validator->validate($sinistre);
+                if (count($validationErrors) > 0) {
+                    foreach ($validationErrors as $validationError) {
+                        $errors[] = $validationError->getPropertyPath() . ': ' . $validationError->getMessage();
+                    }
+                }
+            }
+
+            if (empty($errors)) {
+                $em->persist($sinistre);
+                $em->flush();
+
+                $imageUploadCount = 0;
+                if ($uploadedFiles) {
+                    foreach ($uploadedFiles as $file) {
+                        if ($file->getSize() > 0) {
+                            $extension = strtolower((string) $file->getClientOriginalExtension());
+                            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+                                $imageUploadCount++;
+                            }
+                            $this->handleFileUpload($file, $sinistre, $em, $analysisService, $orchestrator);
+                        }
+                    }
+                }
+
+                $request->getSession()->remove(self::CONSTAT_DRAFT_SESSION_KEY);
+                $this->addFlash('success', 'Constat completed and auto claim filed successfully. Claim #' . $sinistre->getId());
+                $this->addAnalysisFlash($sinistre, $em, $imageUploadCount);
+                $notificationService->sendNewClaimNotificationToAdmins($sinistre);
+
+                return $this->redirect($this->generateUrl('app_sinistre_show', ['id' => $sinistre->getId()]) . '#damage-analysis');
+            }
+
+            return $this->render('sinistre/constat_form.html.twig', [
+                'title' => 'Auto Accident Constat',
+                'draft' => $draft,
+                'errors' => $errors,
+                'form_data' => $data,
+                'sinistre' => null,
+                'isEditConstat' => false,
+            ]);
+        }
+
+        return $this->render('sinistre/constat_form.html.twig', [
+            'title' => 'Auto Accident Constat',
+            'draft' => $draft,
+            'errors' => [],
+            'form_data' => [],
+            'sinistre' => null,
+            'isEditConstat' => false,
+        ]);
+    }
+
+    #[Route('/{id}/constat', name: 'app_sinistre_constat_edit')]
+    public function constatEdit(int $id, Request $request, EntityManagerInterface $em, ValidatorInterface $validator, DamageDetectionOrchestrator $orchestrator, LocalImageAnalysisService $analysisService): Response
+    {
+        if (!$this->getUser()) {
+            return $this->redirectToRoute('app_login');
+        }
+
+        $sinistre = $em->getRepository(Sinistre::class)->find($id);
+        if (!$sinistre) {
+            throw $this->createNotFoundException('Claim not found');
+        }
+
+        $isOwner = (int) $this->getUser()->getId() === (int) $sinistre->getUtilisateur()?->getId();
+        $isAdmin = strtolower($this->getUser()->getRole() ?? '') === 'admin';
+
+        if (!$isOwner && !$isAdmin) {
+            throw $this->createAccessDeniedException('You cannot access this constat.');
+        }
+
+        if (strtoupper((string) $sinistre->getContrat()?->getAssurance()?->getTypeAssurance()) !== 'AUTO') {
+            $this->addFlash('warning', 'Constat is only available for auto claims.');
+            return $this->redirectToRoute('app_sinistre_show', ['id' => $sinistre->getId()]);
+        }
+
+        $existingConstat = $this->extractConstatData($sinistre->getDescription());
+
+        if ($request->isMethod('POST')) {
+            $data = $request->request->all();
+            $errors = [];
+            $uploadedFiles = $request->files->get('preuves');
+
+            if (trim((string) ($data['other_driver_name'] ?? '')) === '') {
+                $errors[] = 'Other driver name is required for the constat.';
+            }
+
+            if (trim((string) ($data['other_vehicle_plate'] ?? '')) === '') {
+                $errors[] = 'Other vehicle plate is required for the constat.';
+            }
+
+            if (trim((string) ($data['accident_circumstances'] ?? '')) === '') {
+                $errors[] = 'Please describe the accident circumstances in the constat.';
+            }
+
+            if ($uploadedFiles) {
+                $maxFiles = 5;
+                $maxSize = 25 * 1024 * 1024;
+                $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
+                if (count($uploadedFiles) > $maxFiles) {
+                    $errors[] = "Maximum $maxFiles files allowed";
+                }
+
+                foreach ($uploadedFiles as $file) {
+                    if ($file->getSize() === 0) {
+                        continue;
+                    }
+
+                    if ($file->getSize() > $maxSize) {
+                        $errors[] = 'File "' . htmlspecialchars($file->getClientOriginalName(), ENT_QUOTES) . '" exceeds 25MB limit';
+                    }
+
+                    if (!in_array($file->getMimeType(), $allowedMimeTypes)) {
+                        $errors[] = 'File type not allowed: ' . htmlspecialchars($file->getClientOriginalName(), ENT_QUOTES) . '. Only images, PDF, and Word docs are allowed.';
+                    }
+                }
+            }
+
+            if (empty($errors)) {
+                $sinistre->setDescription($this->mergeConstatIntoDescription($sinistre->getDescription(), $data));
+
+                $validationErrors = $validator->validate($sinistre);
+                if (count($validationErrors) > 0) {
+                    foreach ($validationErrors as $validationError) {
+                        $errors[] = $validationError->getPropertyPath() . ': ' . $validationError->getMessage();
+                    }
+                }
+            }
+
+            if (empty($errors)) {
+                $imageUploadCount = 0;
+                if ($uploadedFiles) {
+                    foreach ($uploadedFiles as $file) {
+                        if ($file->getSize() > 0) {
+                            $extension = strtolower((string) $file->getClientOriginalExtension());
+                            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+                                $imageUploadCount++;
+                            }
+                            $this->handleFileUpload($file, $sinistre, $em, $analysisService, $orchestrator);
+                        }
+                    }
+                }
+
+                $em->flush();
+                $this->addFlash('success', 'Constat saved successfully for this auto claim.');
+                if ($imageUploadCount > 0) {
+                    $this->addAnalysisFlash($sinistre, $em, $imageUploadCount);
+                }
+
+                return $this->redirectToRoute('app_sinistre_show', ['id' => $sinistre->getId()]);
+            }
+
+            return $this->render('sinistre/constat_form.html.twig', [
+                'title' => 'Auto Accident Constat',
+                'draft' => null,
+                'errors' => $errors,
+                'form_data' => $data,
+                'sinistre' => $sinistre,
+                'isEditConstat' => true,
+            ]);
+        }
+
+        return $this->render('sinistre/constat_form.html.twig', [
+            'title' => 'Auto Accident Constat',
+            'draft' => null,
+            'errors' => [],
+            'form_data' => $existingConstat,
+            'sinistre' => $sinistre,
+            'isEditConstat' => true,
+        ]);
+    }
+
     #[Route('/admin/new', name: 'app_sinistre_admin_new')]
-    public function adminNew(Request $request, EntityManagerInterface $em, ValidatorInterface $validator, LocalImageAnalysisService $analysisService): Response
+    public function adminNew(Request $request, EntityManagerInterface $em, ValidatorInterface $validator, DamageDetectionOrchestrator $orchestrator, LocalImageAnalysisService $analysisService, ClaimContractCompatibilityService $claimCompatibilityService, ClaimNotificationService $notificationService): Response
     {
         if (!$this->getUser()) {
             return $this->redirectToRoute('app_login');
@@ -407,8 +742,20 @@ class SinistreController extends AbstractController
                 }
             }
 
+            if (empty($errors) && isset($contrat)) {
+                $compatibility = $claimCompatibilityService->evaluate(
+                    $data['description'] ?? '',
+                    $contrat->getAssurance()?->getTypeAssurance()
+                );
+
+                if (!$compatibility['is_compatible']) {
+                    $message = $compatibility['message'] ?? 'This claim does not match the selected insurance contract.';
+                    $errors[] = $message;
+                    $this->addFlash('warning', $message);
+                }
+            }
+
             // Validate file uploads if any
-            $uploadedFiles = $request->files->get('preuves');
             if ($uploadedFiles) {
                 $maxFiles = 5;
                 $maxSize = 25 * 1024 * 1024; // 25MB
@@ -442,6 +789,12 @@ class SinistreController extends AbstractController
                 }
             }
 
+            // Validate signature (optional for admin)
+            $signature = isset($data['signature']) ? trim($data['signature']) : '';
+            if (!empty($signature) && !preg_match('/^data:image\/png;base64,/', $signature)) {
+                $errors[] = 'Invalid signature format';
+            }
+
             if (empty($errors)) {
                 $sinistre = new Sinistre();
                 $sinistre->setUtilisateur($utilisateur);
@@ -449,6 +802,9 @@ class SinistreController extends AbstractController
                 $sinistre->setDescription(trim($data['description']));
                 $sinistre->setDateSinistre(new \DateTime($dateStr));
                 $sinistre->setStatut('EN_ATTENTE');
+                if (!empty($signature)) {
+                    $sinistre->setSignature($signature);
+                }
 
                 // Validate entity using Symfony validator
                 $validationErrors = $validator->validate($sinistre);
@@ -465,18 +821,25 @@ class SinistreController extends AbstractController
                 $em->persist($sinistre);
                 $em->flush();
 
+                $imageUploadCount = 0;
                 // Handle file uploads
                 if ($uploadedFiles) {
                     foreach ($uploadedFiles as $file) {
                         if ($file->getSize() > 0) {
-                            $this->handleFileUpload($file, $sinistre, $em, $analysisService);
+                            $extension = strtolower((string) $file->getClientOriginalExtension());
+                            if (in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+                                $imageUploadCount++;
+                            }
+                            $this->handleFileUpload($file, $sinistre, $em, $analysisService, $orchestrator);
                         }
                     }
                 }
 
                 $this->addFlash('success', 'Claim filed successfully for user. Claim #' . $sinistre->getId());
+                $this->addAnalysisFlash($sinistre, $em, $imageUploadCount);
+                $notificationService->sendNewClaimNotificationToAdmins($sinistre);
 
-                return $this->redirectToRoute('app_sinistre_show', ['id' => $sinistre->getId()]);
+                return $this->redirect($this->generateUrl('app_sinistre_show', ['id' => $sinistre->getId()]) . '#damage-analysis');
             } else {
                 // Get all users for dropdown
                 $users = $em->getRepository(\App\Entity\Utilisateur::class)->findAll();
@@ -507,7 +870,7 @@ class SinistreController extends AbstractController
     }
 
     #[Route('/{id}', name: 'app_sinistre_show')]
-    public function show(int $id, EntityManagerInterface $em): Response
+    public function show(int $id, EntityManagerInterface $em, ClaimCoverageAnalysisService $coverageService): Response
     {
         if (!$this->getUser()) {
             $this->addFlash('info', 'Please log in to view your claim.');
@@ -532,11 +895,17 @@ class SinistreController extends AbstractController
         }
 
         $template = $isAdmin ? 'sinistre/admin_show.html.twig' : 'sinistre/show.html.twig';
+        
+        // Analyze coverage based on damage analysis
+        $coverageAnalysis = $coverageService->analyzeCoverage($sinistre);
 
         return $this->render($template, [
             'sinistre' => $sinistre,
+            'coverageAnalysis' => $coverageAnalysis,
             'title' => 'Claim Details',
             'isAdmin' => $isAdmin,
+            'showConstatButton' => $this->shouldShowConstatButton($sinistre),
+            'hasConstat' => $this->hasConstat($sinistre->getDescription()),
         ]);
     }
 
@@ -619,6 +988,33 @@ class SinistreController extends AbstractController
                         }
                     } catch (\Exception $e) {
                         $errors[] = 'Invalid incident date';
+                    }
+                }
+            }
+
+            // Validate and update location if provided
+            if (isset($data['latitude']) && isset($data['longitude'])) {
+                $latitude = trim($data['latitude']);
+                $longitude = trim($data['longitude']);
+                
+                if (!empty($latitude) && !empty($longitude)) {
+                    if (is_numeric($latitude) && is_numeric($longitude)) {
+                        $lat = (float)$latitude;
+                        $lng = (float)$longitude;
+                        
+                        // Validate latitude range
+                        if ($lat >= -90 && $lat <= 90 && $lng >= -180 && $lng <= 180) {
+                            $sinistre->setLatitude($lat);
+                            $sinistre->setLongitude($lng);
+                            
+                            if (isset($data['location_address']) && !empty(trim($data['location_address']))) {
+                                $sinistre->setLocationAddress(trim($data['location_address']));
+                            }
+                        } else {
+                            $errors[] = 'Invalid location coordinates';
+                        }
+                    } else {
+                        $errors[] = 'Invalid location coordinates format';
                     }
                 }
             }
@@ -753,7 +1149,7 @@ class SinistreController extends AbstractController
         return $this->redirectToRoute('app_sinistre_list');
     }
 
-    private function handleFileUpload($file, Sinistre $sinistre, EntityManagerInterface $em, LocalImageAnalysisService $analysisService): void
+    private function handleFileUpload($file, Sinistre $sinistre, EntityManagerInterface $em, LocalImageAnalysisService $analysisService, DamageDetectionOrchestrator $orchestrator = null): void
     {
         $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx'];
         $fileExtension = strtolower($file->getClientOriginalExtension());
@@ -795,18 +1191,141 @@ class SinistreController extends AbstractController
         // IMPORTANT: Flush preuve to database so it gets an ID before creating DamageAnalysis
         $em->flush();
 
-        // Automatically analyze damage for images if analysis service is configured
-        if ($analysisService->isConfigured()) {
-            $isImageFile = in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-            
-            if ($isImageFile) {
+        // Use new Damage Detection Orchestrator for image analysis
+        $isImageFile = in_array(strtolower($fileExtension), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+        
+        if ($isImageFile && $orchestrator) {
+            try {
+                // Use the new orchestrator for production-ready analysis
+                $orchestrator->analyzeImage($preuve, $sinistre);
+            } catch (\Exception $e) {
+                // Log error but don't prevent file upload
+                // Try fallback to local analysis
                 try {
-                    $analysisService->analyzeDamage($preuve, $sinistre);
-                } catch (\Exception $e) {
-                    // Log error but don't prevent file upload
-                    // The service logs the full error details
+                    if ($analysisService->isConfigured()) {
+                        $analysisService->analyzeDamage($preuve, $sinistre);
+                    }
+                } catch (\Exception $fallbackError) {
+                    // Both methods failed, but file upload still succeeds
                 }
             }
         }
+    }
+
+    private function addAnalysisFlash(Sinistre $sinistre, EntityManagerInterface $em, int $imageUploadCount): void
+    {
+        if ($imageUploadCount === 0) {
+            $this->addFlash('info', 'No image evidence was uploaded, so no AI damage analysis was generated.');
+            return;
+        }
+
+        $analysisCount = (int) $em->getRepository(\App\Entity\DamageAnalysis::class)->count([
+            'sinistre' => $sinistre,
+        ]);
+
+        if ($analysisCount > 0) {
+            $this->addFlash('success', sprintf(
+                'AI analysis is ready for %d image%s. Scroll down to the Damage Analysis section.',
+                $analysisCount,
+                $analysisCount === 1 ? '' : 's'
+            ));
+            return;
+        }
+
+        $this->addFlash('warning', 'Image upload succeeded, but no AI analysis was generated for this claim yet.');
+    }
+
+    private function storeConstatDraft(Request $request, array $data, ?array $uploadedFiles): void
+    {
+        $request->getSession()->set(self::CONSTAT_DRAFT_SESSION_KEY, [
+            'user_id' => $this->getUser()?->getId(),
+            'contrat_id' => (int) ($data['contrat_id'] ?? 0),
+            'date_sinistre' => (string) ($data['date_sinistre'] ?? ''),
+            'description' => trim((string) ($data['description'] ?? '')),
+            'location_address' => trim((string) ($data['location_address'] ?? '')),
+            'latitude' => (float) ($data['latitude'] ?? 0),
+            'longitude' => (float) ($data['longitude'] ?? 0),
+            'signature' => (string) ($data['signature'] ?? ''),
+            'had_uploaded_files' => is_array($uploadedFiles) && count($uploadedFiles) > 0,
+        ]);
+
+        if (is_array($uploadedFiles) && count($uploadedFiles) > 0) {
+            $this->addFlash('warning', 'Please re-upload your evidence files on the constat form. Uploaded files cannot be carried across the redirect.');
+        }
+    }
+
+    private function buildConstatDescription(array $draft, array $constatData): string
+    {
+        $lines = [
+            trim((string) ($draft['description'] ?? '')),
+            '',
+            '--- AUTO ACCIDENT CONSTAT ---',
+            'Other Driver: ' . trim((string) ($constatData['other_driver_name'] ?? '')),
+            'Other Vehicle Plate: ' . trim((string) ($constatData['other_vehicle_plate'] ?? '')),
+            'Circumstances: ' . trim((string) ($constatData['accident_circumstances'] ?? '')),
+            'Police Report: ' . (!empty($constatData['police_report']) ? 'Yes' : 'No'),
+            'Injuries Reported: ' . (!empty($constatData['injuries_reported']) ? 'Yes' : 'No'),
+        ];
+
+        $notes = trim((string) ($constatData['constat_notes'] ?? ''));
+        if ($notes !== '') {
+            $lines[] = 'Additional Notes: ' . $notes;
+        }
+
+        return implode("\n", $lines);
+    }
+
+    private function shouldShowConstatButton(Sinistre $sinistre): bool
+    {
+        return strtoupper((string) $sinistre->getContrat()?->getAssurance()?->getTypeAssurance()) === 'AUTO';
+    }
+
+    private function hasConstat(?string $description): bool
+    {
+        return str_contains((string) $description, '--- AUTO ACCIDENT CONSTAT ---');
+    }
+
+    private function extractConstatData(?string $description): array
+    {
+        $description = (string) $description;
+        $marker = '--- AUTO ACCIDENT CONSTAT ---';
+        if (!str_contains($description, $marker)) {
+            return [];
+        }
+
+        $section = explode($marker, $description, 2)[1] ?? '';
+        $lines = preg_split('/\r\n|\r|\n/', trim($section)) ?: [];
+        $data = [];
+
+        foreach ($lines as $line) {
+            if (str_starts_with($line, 'Other Driver: ')) {
+                $data['other_driver_name'] = substr($line, strlen('Other Driver: '));
+            } elseif (str_starts_with($line, 'Other Vehicle Plate: ')) {
+                $data['other_vehicle_plate'] = substr($line, strlen('Other Vehicle Plate: '));
+            } elseif (str_starts_with($line, 'Circumstances: ')) {
+                $data['accident_circumstances'] = substr($line, strlen('Circumstances: '));
+            } elseif (str_starts_with($line, 'Police Report: ')) {
+                $data['police_report'] = substr($line, strlen('Police Report: ')) === 'Yes';
+            } elseif (str_starts_with($line, 'Injuries Reported: ')) {
+                $data['injuries_reported'] = substr($line, strlen('Injuries Reported: ')) === 'Yes';
+            } elseif (str_starts_with($line, 'Additional Notes: ')) {
+                $data['constat_notes'] = substr($line, strlen('Additional Notes: '));
+            }
+        }
+
+        return $data;
+    }
+
+    private function mergeConstatIntoDescription(?string $description, array $constatData): string
+    {
+        $description = (string) $description;
+        $marker = "\n--- AUTO ACCIDENT CONSTAT ---";
+        $baseDescription = str_contains($description, $marker)
+            ? explode($marker, $description, 2)[0]
+            : $description;
+
+        return $this->buildConstatDescription([
+            'description' => trim($baseDescription),
+        ], $constatData);
     }
 }

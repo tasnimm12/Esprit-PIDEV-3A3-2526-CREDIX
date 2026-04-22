@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Utilisateur;
+use App\Service\LoginHistoryService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,7 +17,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class AuthController extends AbstractController
 {
     #[Route('/login', name: 'app_login', methods: ['GET', 'POST'])]
-    public function login(Request $request, EntityManagerInterface $em, TokenStorageInterface $tokenStorage, AuthenticationUtils $authenticationUtils): Response
+    public function login(Request $request, EntityManagerInterface $em, TokenStorageInterface $tokenStorage, AuthenticationUtils $authenticationUtils, LoginHistoryService $loginHistoryService): Response
     {
         // Redirect if already logged in
         if ($this->getUser()) {
@@ -47,6 +48,7 @@ class AuthController extends AbstractController
                     $user->getRoles()
                 );
                 $tokenStorage->setToken($token);
+                $loginHistoryService->recordLogin($user);
 
                 $this->addFlash('success', 'Welcome back, ' . $user->getPrenom() . '!');
                 return $this->redirectToRoute('app_home');
@@ -201,7 +203,7 @@ class AuthController extends AbstractController
     }
 
     #[Route('/verify-phone', name: 'app_verify_phone', methods: ['GET', 'POST'])]
-    public function verifyPhone(Request $request, EntityManagerInterface $em, TokenStorageInterface $tokenStorage, \App\Service\SmsService $smsService): Response
+    public function verifyPhone(Request $request, EntityManagerInterface $em, TokenStorageInterface $tokenStorage, \App\Service\SmsService $smsService, LoginHistoryService $loginHistoryService): Response
     {
         // Get pending user ID from session
         $userId = $request->getSession()->get('pending_verification_user_id');
@@ -277,6 +279,7 @@ class AuthController extends AbstractController
                         $user->getRoles()
                     );
                     $tokenStorage->setToken($token);
+                    $loginHistoryService->recordLogin($user);
 
                     $this->addFlash('success', 'Phone verified successfully! Welcome to Credix, ' . $user->getPrenom() . '!');
                     return $this->redirectToRoute('app_home');

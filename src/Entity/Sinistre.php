@@ -61,6 +61,18 @@ class Sinistre
     #[ORM\OneToMany(targetEntity: DamageAnalysis::class, mappedBy: 'sinistre', cascade: ['remove'])]
     private Collection $damageAnalyses;
 
+    #[ORM\Column(type: 'float', nullable: true)]
+    private $latitude;
+
+    #[ORM\Column(type: 'float', nullable: true)]
+    private $longitude;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private $location_address;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private $signature;
+
     public function __construct()
     {
         $this->preuves = new ArrayCollection();
@@ -130,4 +142,16 @@ class Sinistre
         $this->damageAnalyses->removeElement($analysis);
         return $this;
     }
+
+    public function getLatitude() { return $this->latitude; }
+    public function setLatitude($val) { $this->latitude = $val; return $this; }
+    
+    public function getLongitude() { return $this->longitude; }
+    public function setLongitude($val) { $this->longitude = $val; return $this; }
+    
+    public function getLocationAddress() { return $this->location_address; }
+    public function setLocationAddress($val) { $this->location_address = $val; return $this; }
+    
+    public function getSignature() { return $this->signature; }
+    public function setSignature($val) { $this->signature = $val; return $this; }
 }

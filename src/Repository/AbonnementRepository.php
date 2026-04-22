@@ -23,7 +23,8 @@ class AbonnementRepository extends ServiceEntityRepository
         string $sort = 'id',
         string $order = 'DESC',
         int $limit = null,
-        int $offset = 0
+        int $offset = 0,
+        $currentUser = null
     ): array {
         $query = $this->createQueryBuilder('ab');
 
@@ -42,6 +43,16 @@ class AbonnementRepository extends ServiceEntityRepository
                   ->setParameter('maxPrice', $maxPrice);
         }
 
+        // Exclude custom plans created by other users - only show custom plans created by current user or non-custom plans
+        if ($currentUser) {
+            $query->andWhere(
+                '(ab.is_custom = false) OR (ab.is_custom = true AND ab.createdBy = :currentUser)'
+            )->setParameter('currentUser', $currentUser);
+        } else {
+            // If no user logged in, show only non-custom plans
+            $query->andWhere('ab.is_custom = false');
+        }
+
         $query->orderBy('ab.' . $sort, $order);
 
         if ($limit) {
@@ -55,7 +66,7 @@ class AbonnementRepository extends ServiceEntityRepository
     /**
      * Count abonnements with filters
      */
-    public function countFiltered(string $search = '', float $minPrice = null, float $maxPrice = null): int
+    public function countFiltered(string $search = '', float $minPrice = null, float $maxPrice = null, $currentUser = null): int
     {
         $query = $this->createQueryBuilder('ab')
                       ->select('COUNT(ab.id) as total');
@@ -73,6 +84,16 @@ class AbonnementRepository extends ServiceEntityRepository
         if ($maxPrice !== null) {
             $query->andWhere('ab.prix_mensuel <= :maxPrice')
                   ->setParameter('maxPrice', $maxPrice);
+        }
+
+        // Exclude custom plans created by other users
+        if ($currentUser) {
+            $query->andWhere(
+                '(ab.is_custom = false) OR (ab.is_custom = true AND ab.createdBy = :currentUser)'
+            )->setParameter('currentUser', $currentUser);
+        } else {
+            // If no user logged in, show only non-custom plans
+            $query->andWhere('ab.is_custom = false');
         }
 
         return (int) $query->getQuery()->getSingleScalarResult();

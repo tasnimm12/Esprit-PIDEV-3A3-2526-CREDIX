@@ -243,4 +243,27 @@ class SinistreRepository extends ServiceEntityRepository
                     ->getQuery()
                     ->getResult();
     }
+
+    public function countPendingClaims(): int
+    {
+        return (int) $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)')
+            ->where('s.statut = :status')
+            ->setParameter('status', 'EN_ATTENTE')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function getRecentPendingClaims(int $limit = 5): array
+    {
+        return $this->createQueryBuilder('s')
+            ->leftJoin('s.utilisateur', 'u')
+            ->addSelect('u')
+            ->where('s.statut = :status')
+            ->setParameter('status', 'EN_ATTENTE')
+            ->orderBy('s.created_at', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

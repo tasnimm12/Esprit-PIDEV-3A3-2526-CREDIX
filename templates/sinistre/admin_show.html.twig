@@ -20,7 +20,7 @@
     {% if app.flashes %}
         {% for type, messages in app.flashes %}
             {% for message in messages %}
-                <div class="alert alert-{{ type === 'success' ? 'success' : 'danger' }} alert-dismissible fade show" role="alert">
+                <div class="alert alert-{{ type in ['success', 'danger', 'warning', 'info'] ? type : 'secondary' }} alert-dismissible fade show" role="alert">
                     {{ message }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
@@ -100,6 +100,15 @@
                         </div>
                     </div>
 
+                    {% if showConstatButton %}
+                        <div class="mb-4">
+                            <a href="{{ path('app_sinistre_constat_edit', {id: sinistre.id}) }}" class="btn btn-outline-primary">
+                                <i class="fas fa-car-crash me-2"></i>{{ hasConstat ? 'Edit Constat' : 'Fill Constat' }}
+                            </a>
+                            <small class="text-muted d-block mt-2">Constat is available only for auto insurance claims.</small>
+                        </div>
+                    {% endif %}
+
                     {% if sinistre.preuves|length > 0 %}
                         <hr>
                         <div class="mb-4">
@@ -127,6 +136,16 @@
                                 {% endfor %}
                             </div>
                         </div>
+                    {% endif %}
+
+                    {% if sinistre.signature %}
+                    <hr>
+                    <div class="mb-4">
+                        <label class="form-label"><strong>Claimant Signature</strong></label>
+                        <div class="mt-3">
+                            <img src="{{ sinistre.signature }}" alt="Claimant Signature" style="border: 1px solid #ddd; border-radius: 4px; padding: 10px; background-color: #f9f9f9; max-width: 300px;">
+                        </div>
+                    </div>
                     {% endif %}
                 </div>
             </div>

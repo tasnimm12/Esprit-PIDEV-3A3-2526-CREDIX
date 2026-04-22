@@ -44,9 +44,7 @@ class Utilisateur implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\Type('\DateTimeInterface', message: 'Date of birth must be a valid date')]
     private $date_naissance;
 
-    #[ORM\Column(type: 'string', length: 50)]
-    #[Assert\NotBlank(message: 'Role is required')]
-    #[Assert\Choice(choices: ['user', 'admin', 'agent'], message: 'Invalid role. Must be one of: user, admin, agent')]
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
     private $role;
 
     #[ORM\Column(type: 'string', length: 20, nullable: true)]

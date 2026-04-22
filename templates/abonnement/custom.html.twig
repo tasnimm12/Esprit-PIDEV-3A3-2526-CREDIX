@@ -1,0 +1,262 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Create Custom Plan - Credix{% endblock %}
+
+{% block content %}
+<div class="container-xxl py-5" style="margin-top: 150px; padding-top: 30px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Header -->
+                <div class="mb-4">
+                    <a href="{{ path('app_abonnement_list') }}" class="text-decoration-none">
+                        <i class="fa fa-arrow-left me-2"></i>Back to Plans
+                    </a>
+                </div>
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white py-4">
+                        <h1 class="h3 mb-0">
+                            <i class="fa fa-cog me-2"></i>Create Your Custom Plan
+                        </h1>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <!-- Info Alert -->
+                        <div class="alert alert-info alert-dismissible fade show" role="alert">
+                            <i class="fa fa-info-circle me-2"></i>
+                            <strong>Customizable Plan:</strong> Create a subscription plan tailored to your specific needs with the features you want.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+
+                        <!-- Form -->
+                        <form method="POST" action="{{ path('app_abonnement_custom_create') }}" id="customPlanForm">
+                            <input type="hidden" name="_token" value="{{ csrf_token('custom_plan_create') }}">
+                            
+                            <!-- Plan Name -->
+                            <div class="form-group mb-4">
+                                <label for="planName" class="form-label">
+                                    <i class="fa fa-tag me-2"></i>Plan Name <span class="text-danger">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    id="planName" 
+                                    name="plan_name" 
+                                    placeholder="e.g., My Premium Package"
+                                    required
+                                    minlength="3"
+                                    maxlength="50"
+                                >
+                                <small class="form-text text-muted">Give your custom plan a descriptive name</small>
+                            </div>
+
+                            <!-- Duration -->
+                            <div class="form-group mb-4">
+                                <label for="duration" class="form-label">
+                                    <i class="fa fa-calendar me-2"></i>Subscription Duration <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="duration" name="duration" required>
+                                    <option value="">-- Select Duration --</option>
+                                    <option value="1 Month">1 Month</option>
+                                    <option value="3 Months">3 Months</option>
+                                    <option value="6 Months">6 Months</option>
+                                    <option value="1 Year">1 Year</option>
+                                    <option value="2 Years">2 Years</option>
+                                </select>
+                                <small class="form-text text-muted">Choose how long you want this subscription to last</small>
+                            </div>
+
+                            <!-- Monthly Price -->
+                            <div class="form-group mb-4">
+                                <label for="monthlyPrice" class="form-label">
+                                    <i class="fa fa-dollar-sign me-2"></i>Monthly Price <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">€</span>
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="monthlyPrice" 
+                                        name="monthly_price" 
+                                        placeholder="0.00"
+                                        required
+                                        min="0"
+                                        step="0.01"
+                                    >
+                                </div>
+                                <small class="form-text text-muted">Base price per month for your custom plan</small>
+                            </div>
+
+                            <!-- Annual Price -->
+                            <div class="form-group mb-4">
+                                <label for="annualPrice" class="form-label">
+                                    <i class="fa fa-dollar-sign me-2"></i>Annual Price <span class="text-danger">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">€</span>
+                                    <input 
+                                        type="number" 
+                                        class="form-control" 
+                                        id="annualPrice" 
+                                        name="annual_price" 
+                                        placeholder="0.00"
+                                        required
+                                        min="0"
+                                        step="0.01"
+                                    >
+                                </div>
+                                <small class="form-text text-muted">Annual price (usually 10-15% discount from monthly × 12)</small>
+                                <button type="button" class="btn btn-sm btn-outline-secondary mt-2" id="calculateAnnual">
+                                    <i class="fa fa-calculator me-1"></i>Calculate Annual (10% off)
+                                </button>
+                            </div>
+
+                            <!-- Features/Benefits -->
+                            <div class="form-group mb-4">
+                                <label for="features" class="form-label">
+                                    <i class="fa fa-star me-2"></i>Features & Benefits
+                                </label>
+                                <textarea 
+                                    class="form-control" 
+                                    id="features" 
+                                    name="features" 
+                                    rows="6"
+                                    placeholder="List the features included in your plan. Enter one feature per line."
+                                ></textarea>
+                                <small class="form-text text-muted">Describe what's included in your custom plan (one item per line)</small>
+                            </div>
+
+                            <!-- Description -->
+                            <div class="form-group mb-4">
+                                <label for="description" class="form-label">
+                                    <i class="fa fa-align-left me-2"></i>Plan Description
+                                </label>
+                                <textarea 
+                                    class="form-control" 
+                                    id="description" 
+                                    name="description" 
+                                    rows="4"
+                                    maxlength="1000"
+                                    placeholder="Brief description of your custom plan"
+                                ></textarea>
+                                <small class="form-text text-muted">Optional: Describe your plan in detail (max 1000 characters)</small>
+                            </div>
+
+                            <!-- Summary Section -->
+                            <div class="card bg-light mb-4">
+                                <div class="card-header bg-secondary text-white py-2">
+                                    <h6 class="mb-0"><i class="fa fa-summary me-2"></i>Summary</h6>
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-2">
+                                                <strong>Plan Name:</strong> <span id="summaryName" class="text-muted">Not set</span>
+                                            </p>
+                                            <p class="mb-0">
+                                                <strong>Duration:</strong> <span id="summaryDuration" class="text-muted">Not set</span>
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-2">
+                                                <strong>Monthly:</strong> <span id="summaryMonthly" class="text-muted">€0.00</span>
+                                            </p>
+                                            <p class="mb-0">
+                                                <strong>Annual:</strong> <span id="summaryAnnual" class="text-muted">€0.00</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Terms & Conditions -->
+                            <div class="form-group mb-4">
+                                <div class="form-check">
+                                    <input 
+                                        type="checkbox" 
+                                        class="form-check-input" 
+                                        id="agreeTerms" 
+                                        name="agree_terms" 
+                                        required
+                                    >
+                                    <label class="form-check-label" for="agreeTerms">
+                                        I agree to the terms and conditions and want to subscribe to this custom plan
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Buttons -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <button type="submit" class="btn btn-primary w-100 py-2">
+                                        <i class="fa fa-check me-2"></i>Create & Subscribe
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="{{ path('app_abonnement_list') }}" class="btn btn-outline-secondary w-100 py-2">
+                                        <i class="fa fa-times me-2"></i>Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const planNameInput = document.getElementById('planName');
+    const durationSelect = document.getElementById('duration');
+    const monthlyPriceInput = document.getElementById('monthlyPrice');
+    const annualPriceInput = document.getElementById('annualPrice');
+    const calculateBtn = document.getElementById('calculateAnnual');
+    
+    const summaryName = document.getElementById('summaryName');
+    const summaryDuration = document.getElementById('summaryDuration');
+    const summaryMonthly = document.getElementById('summaryMonthly');
+    const summaryAnnual = document.getElementById('summaryAnnual');
+    
+    // Update summary in real-time
+    function updateSummary() {
+        summaryName.textContent = planNameInput.value || 'Not set';
+        summaryDuration.textContent = durationSelect.value || 'Not set';
+        summaryMonthly.textContent = '€' + (parseFloat(monthlyPriceInput.value) || 0).toFixed(2);
+        summaryAnnual.textContent = '€' + (parseFloat(annualPriceInput.value) || 0).toFixed(2);
+    }
+    
+    planNameInput.addEventListener('input', updateSummary);
+    durationSelect.addEventListener('change', updateSummary);
+    monthlyPriceInput.addEventListener('input', updateSummary);
+    annualPriceInput.addEventListener('input', updateSummary);
+    
+    // Calculate annual price (10% discount)
+    calculateBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const monthlyPrice = parseFloat(monthlyPriceInput.value);
+        if (monthlyPrice > 0) {
+            const annualPrice = (monthlyPrice * 12 * 0.9).toFixed(2);
+            annualPriceInput.value = annualPrice;
+            updateSummary();
+        } else {
+            alert('Please enter a valid monthly price first');
+        }
+    });
+    
+    // Initial summary update
+    updateSummary();
+});
+</script>
+
+<style>
+    .pricing-box {
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        border-left: 4px solid #0d6efd;
+    }
+</style>
+{% endblock %}

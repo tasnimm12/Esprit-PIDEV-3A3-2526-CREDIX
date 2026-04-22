@@ -78,4 +78,20 @@ class UtilisateurRepository extends ServiceEntityRepository
 
         return $query->getQuery()->getResult();
     }
+
+    /**
+     * Get all admin users that have an email address.
+     */
+    public function findAdminsWithEmail(): array
+    {
+        return $this->createQueryBuilder('u')
+            ->where('LOWER(u.role) = :role')
+            ->andWhere('u.email IS NOT NULL')
+            ->andWhere('u.email <> :empty')
+            ->setParameter('role', 'admin')
+            ->setParameter('empty', '')
+            ->orderBy('u.email', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

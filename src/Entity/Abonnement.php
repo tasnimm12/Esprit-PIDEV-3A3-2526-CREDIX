@@ -49,6 +49,13 @@ class Abonnement
     #[ORM\Column(type: 'decimal', precision: 5, scale: 2, nullable: true)]
     private $reduction_pourcentage;
 
+    #[ORM\Column(type: 'boolean')]
+    private $is_custom = false;
+
+    #[ORM\ManyToOne(targetEntity: Utilisateur::class)]
+    #[ORM\JoinColumn(name: 'created_by', referencedColumnName: 'id_user', nullable: true, onDelete: 'CASCADE')]
+    private $createdBy;
+
     // Getters and Setters
     public function getIdAbonnement() { return $this->id_abonnement; }
     public function setTypeAbonnement($val) { $this->type_abonnement = $val; return $this; }
@@ -67,6 +74,12 @@ class Abonnement
     public function isActif() { return $this->actif; }
     public function setReductionPourcentage($val) { $this->reduction_pourcentage = $val; return $this; }
     public function getReductionPourcentage() { return $this->reduction_pourcentage; }
+    
+    public function isCustom() { return $this->is_custom; }
+    public function setIsCustom($val) { $this->is_custom = $val; return $this; }
+    
+    public function getCreatedBy() { return $this->createdBy; }
+    public function setCreatedBy($val) { $this->createdBy = $val; return $this; }
 
     // Aliasing getters for template compatibility
     public function getNomAbonnement() { return $this->type_abonnement; }

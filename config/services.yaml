@@ -28,6 +28,14 @@ services:
             $whatsappSandboxNumber: '%env(string:WHATSAPP_SANDBOX_NUMBER)%'
             $whatsappApiMethod: '%env(string:WHATSAPP_API_METHOD)%'
     
+    App\Service\ChatbotService:
+        public: true
+
+    App\Service\ChatbotGatewayService:
+        public: true
+        arguments:
+            $mode: '%env(string:CHATBOT_MODE)%'
+
     # Make Local Analysis service public for testing
     App\Service\LocalImageAnalysisService:
         public: true
@@ -35,3 +43,49 @@ services:
     # Make Claim Notification service public for testing
     App\Service\ClaimNotificationService:
         public: true
+    
+    # Image Preprocessing Service
+    App\Service\ImagePreprocessingService:
+        public: true
+    
+    # Advanced Damage Detection Service
+    App\Service\AdvancedDamageDetectionService:
+        public: true
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+    
+    # NEW DAMAGE DETECTION ARCHITECTURE (v3 - Production Ready)
+    # Separate, clean services for damage analysis
+    App\Service\DamageDetection\RawImageAnalysisService:
+        public: true
+    
+    App\Service\DamageDetection\RuleBasedSeverityEngine:
+        public: true
+    
+    App\Service\DamageDetection\InsuranceCostCalculator:
+        public: true
+    
+    App\Service\DamageDetection\AnalysisValidationService:
+        public: true
+    
+    App\Service\DamageDetection\DamageDetectionOrchestrator:
+        public: true
+        arguments:
+            $projectDir: '%kernel.project_dir%'
+
+    App\Service\DamageDetection\GeminiDamageAnalysisService:
+        public: true
+        arguments:
+            $apiKey: '%env(string:GEMINI_API_KEY)%'
+            $model: '%env(string:GEMINI_MODEL)%'
+    
+    App\Service\DamageDetection\FirstLevelDecisionService:
+        public: true
+
+    # Hugging Face Computer Vision Integration
+    App\Service\HuggingFaceImageAnalysisService:
+        public: true
+        arguments:
+            $huggingFaceToken: '%env(string:HUGGING_FACE_TOKEN)%'
+            $objectDetectionModel: '%env(string:HUGGING_FACE_OBJECT_MODEL)%'
+            $imageClassificationModel: '%env(string:HUGGING_FACE_CLASSIFICATION_MODEL)%'

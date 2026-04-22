@@ -1,0 +1,89 @@
+{% extends 'base_admin.html.twig' %}
+
+{% block title %}Review Claim #{{ analysis.sinistre.id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-10">
+            <h1>Claim #{{ analysis.sinistre.id }} - Detailed Review</h1>
+            <p class="text-muted">Human admin decision required</p>
+
+            <div class="card mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Analysis Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Insurance Type:</strong> <span class="badge bg-primary">{{ insurance_type ?: 'N/A' }}</span></p>
+                            <p><strong>Damage Type:</strong> {{ analysis.damageType }}</p>
+                            <p><strong>Affected Area:</strong> {{ analysis.affectedAreaPercentage }}%</p>
+                            <p><strong>Estimated Cost:</strong>
+                                {% if analysis.estimatedCost %}
+                                    ${{ analysis.estimatedCost|number_format }}
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>
+                                <strong>Severity:</strong>
+                                {% if analysis.severity == 'MAJOR' %}
+                                    <span class="badge bg-danger">MAJOR</span>
+                                {% elseif analysis.severity == 'MEDIUM' %}
+                                    <span class="badge bg-warning text-dark">MEDIUM</span>
+                                {% else %}
+                                    <span class="badge bg-success">MINOR</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>AI Model:</strong> {{ analysis.aiModel }}</p>
+                            <p><strong>Analyzed At:</strong> {{ analysis.analyzedAt|date('Y-m-d H:i') }}</p>
+                            <p><strong>Current Claim Status:</strong> {{ analysis.sinistre.statut }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Analysis Details</h5>
+                </div>
+                <div class="card-body">
+                    <div style="white-space: pre-wrap;">{{ analysis.analysisDetails }}</div>
+                    <div class="alert alert-warning mt-3">
+                        <strong>Important:</strong> This analysis supports review, but the final claim decision remains with the admin.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Your Decision</h5>
+                </div>
+                <div class="card-body">
+                    <p>Select your admin decision for this claim:</p>
+
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <form method="POST" action="{{ path('admin_claims_approve', {id: analysis.id}) }}">
+                            <button type="submit" class="btn btn-success btn-lg">Approve Claim</button>
+                        </form>
+                        <form method="POST" action="{{ path('admin_claims_deny', {id: analysis.id}) }}">
+                            <button type="submit" class="btn btn-danger btn-lg">Deny Claim</button>
+                        </form>
+                        <form method="POST" action="{{ path('admin_claims_request_review', {id: analysis.id}) }}">
+                            <button type="submit" class="btn btn-warning btn-lg">Keep Pending</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="{{ path('admin_claims_pending') }}" class="btn btn-secondary">Back to Pending Claims</a>
+                <a href="{{ path('app_sinistre_show', {id: analysis.sinistre.id}) }}" class="btn btn-outline-primary ms-2">Open Full Claim</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

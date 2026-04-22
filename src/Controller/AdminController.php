@@ -13,6 +13,7 @@ use App\Entity\Credit;
 use App\Entity\Remboursement;
 use App\Entity\Projet;
 use App\Entity\Investissement;
+use App\Entity\Reclamation;
 use App\Service\BulkEmailService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -542,10 +543,14 @@ class AdminController extends AbstractController
         }
 
         $abonnementRepository = $entityManager->getRepository(Abonnement::class);
+        $reclamationRepository = $entityManager->getRepository(Reclamation::class);
+        
         $abonnements = $abonnementRepository->findAll();
+        $reclamations = $reclamationRepository->findAll();
 
         return $this->render('admin/abonnements/list.html.twig', [
             'abonnements' => $abonnements,
+            'reclamations' => $reclamations,
         ]);
     }
 

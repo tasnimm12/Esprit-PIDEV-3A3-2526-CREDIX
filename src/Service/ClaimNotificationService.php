@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Entity\Sinistre;
+use App\Repository\UtilisateurRepository;
 use Psr\Log\LoggerInterface;
 use Twig\Environment as Twig;
 use Symfony\Component\Mailer\MailerInterface;
@@ -17,14 +18,16 @@ class ClaimNotificationService
     private LoggerInterface $logger;
     private Twig $twig;
     private MailerInterface $mailer;
+    private UtilisateurRepository $userRepository;
     private string $senderEmail;
     private string $senderName;
 
-    public function __construct(LoggerInterface $logger, Twig $twig, MailerInterface $mailer)
+    public function __construct(LoggerInterface $logger, Twig $twig, MailerInterface $mailer, UtilisateurRepository $userRepository)
     {
         $this->logger = $logger;
         $this->twig = $twig;
         $this->mailer = $mailer;
+        $this->userRepository = $userRepository;
         // Configure sender details
         $this->senderEmail = $_ENV['APP_EMAIL_FROM'] ?? 'noreply@insurance-app.local';
         $this->senderName = $_ENV['APP_EMAIL_NAME'] ?? 'Insurance Claims System';
@@ -44,6 +47,69 @@ class ClaimNotificationService
     public function sendRejectionNotification(Sinistre $sinistre): bool
     {
         return $this->sendClaimNotification($sinistre, 'REJETE');
+    }
+
+    /**
+     * Notify all admins that a new claim was created.
+     */
+    public function sendNewClaimNotificationToAdmins(Sinistre $sinistre): bool
+    {
+        try {
+            $admins = $this->userRepository->findAdminsWithEmail();
+            if ($admins === []) {
+                $this->logger->warning('Cannot send admin claim notification: no admin email recipients found');
+                return false;
+            }
+
+            $claimOwner = $sinistre->getUtilisateur();
+            $subject = sprintf('New Claim Created - Claim #%d', $sinistre->getId());
+            $htmlBody = $this->twig->render('email/admin_claim_created.html.twig', [
+                'sinistre' => $sinistre,
+                'claimNumber' => $sinistre->getId(),
+                'claimOwner' => $claimOwner,
+                'contract' => $sinistre->getContrat(),
+                'insuranceType' => $sinistre->getContrat()?->getAssurance()?->getTypeAssurance(),
+            ]);
+
+            $sentCount = 0;
+            foreach ($admins as $admin) {
+                try {
+                    $email = (new Email())
+                        ->from($this->senderEmail)
+                        ->to($admin->getEmail())
+                        ->subject($subject)
+                        ->html($htmlBody);
+
+                    $this->mailer->send($email);
+                    $sentCount++;
+                } catch (\Exception $e) {
+                    $this->logger->error(sprintf(
+                        'Failed to send new-claim admin notification to %s: %s',
+                        $admin->getEmail(),
+                        $e->getMessage()
+                    ));
+                }
+            }
+
+            if ($sentCount === 0) {
+                return false;
+            }
+
+            $this->logger->info(sprintf(
+                'Sent new claim notifications for claim #%d to %d admin(s)',
+                $sinistre->getId(),
+                $sentCount
+            ));
+
+            return true;
+        } catch (\Exception $e) {
+            $this->logger->error(sprintf(
+                'Error sending admin new claim notifications: %s',
+                $e->getMessage()
+            ));
+
+            return false;
+        }
     }
 
     /**
